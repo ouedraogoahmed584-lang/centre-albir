@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    main.js — Centre Al-Bir — Système Thèmes Premium 2026
    Gère : 5 thèmes, détection auto, sauvegarde, navbar,
           mobile menu, admin sidebar, boutons flottants
@@ -303,3 +303,19 @@ document.addEventListener('DOMContentLoaded', function() {
   initFlashMessages();
   initNetwork();
 });
+
+/* ══════════════════════════════════════════════════════════
+   EXPORTS GLOBAUX — Fonctions accessibles depuis HTML onclick
+   Nécessaire pour que les boutons HTML puissent les appeler
+══════════════════════════════════════════════════════════ */
+window.setTheme            = setTheme;
+window.toggleThemeSwitcher = function() {
+  var panel = document.getElementById('theme-switcher-panel');
+  if (panel) panel.classList.toggle('open');
+};
+window.toggleMobile        = toggleMobile;
+window.toggleNavEspace     = toggleNavEspace;
+window.toggleFloatEspace   = toggleFloatEspace;
+window.toggleAdminSidebar  = toggleAdminSidebar;
+window.closeAdminSidebar   = closeAdminSidebar;
+window.showToast           = showToast;
