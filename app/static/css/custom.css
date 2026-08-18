@@ -1683,3 +1683,94 @@ img, video { max-width: 100%; height: auto; }
     animation: none !important;
   }
 }
+
+/* ============================================================
+   ANTI-FOUC — Fix Layout Shift au premier chargement
+   Empêche l'affichage désordonné avant que JS soit prêt
+   ============================================================ */
+
+/* Cacher les boutons flottants jusqu'à ce que la page soit prête */
+.float-btn,
+#float-espace,
+#theme-panel {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease 0.5s, visibility 0.4s ease 0.5s;
+}
+
+/* Révéler quand la page est prête (classe ajoutée par JS) */
+body.page-ready .float-btn,
+body.page-ready #float-espace,
+body.page-ready #theme-panel {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Scroll top garde son état invisible si pas scrollé */
+body.page-ready .float-btn-scroll {
+  opacity: 0;
+  visibility: hidden;
+}
+body.page-ready .float-btn-scroll.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Loader couvre TOUT pendant le chargement */
+#page-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+#page-loader.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Spacer auto-ajuste selon hauteur réelle navbar + bannière */
+#nav-spacer {
+  height: 68px; /* défaut */
+  flex-shrink: 0;
+}
+
+/* Navbar toujours visible et stable */
+#navbar {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  width: 100%;
+  will-change: transform;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Empêcher le saut de contenu pendant animations */
+.animate-fade-up,
+.animate-fade-in,
+[data-aos] {
+  will-change: transform, opacity;
+}
+
+/* Bannière inscription stable */
+#enroll-banner {
+  position: relative;
+  z-index: 200;
+  width: 100%;
+}
+
+/* Stabiliser les boutons flottants - pas de jump */
+.float-btn {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  will-change: transform;
+  transform: translateZ(0);
+}

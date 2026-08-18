@@ -428,3 +428,53 @@ window.addEventListener('resize', function() {
     document.body.style.overflow = '';
   }
 }, { passive: true });
+
+/* ============================================================
+   FIX FOUC — Spacer dynamique + page-ready
+   Calcule la vraie hauteur navbar+bannière
+   Révèle les éléments seulement quand tout est prêt
+   ============================================================ */
+
+function fixNavSpacer() {
+  var spacer  = document.getElementById('nav-spacer');
+  var navbar  = document.getElementById('navbar');
+  if (!spacer || !navbar) return;
+
+  // Calculer hauteur réelle de la navbar (navbar + bannière intégrée)
+  var navH = navbar.offsetHeight;
+  spacer.style.height = navH + 'px';
+}
+
+function markPageReady() {
+  // Révèle tous les éléments cachés anti-FOUC
+  document.body.classList.add('page-ready');
+
+  // Corriger le spacer
+  fixNavSpacer();
+
+  // Cacher le loader
+  var loader = document.getElementById('page-loader');
+  if (loader) {
+    loader.classList.add('hidden');
+  }
+}
+
+// Lancer quand DOM + images chargés
+window.addEventListener('load', function() {
+  // Petit délai pour que Tailwind CDN applique ses styles
+  setTimeout(markPageReady, 300);
+});
+
+// Fallback de sécurité
+setTimeout(markPageReady, 2500);
+
+// Recalculer spacer si resize
+window.addEventListener('resize', fixNavSpacer, { passive: true });
+
+// Recalculer spacer si bannière fermée
+document.addEventListener('click', function(e) {
+  var banner = document.getElementById('enroll-banner');
+  if (banner && e.target.closest && e.target.closest('[onclick*="enroll-banner"]')) {
+    setTimeout(fixNavSpacer, 50);
+  }
+});
