@@ -1,4 +1,4 @@
-from flask import Flask
+﻿from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
@@ -67,6 +67,7 @@ def create_app(config_name=None):
     # ── Import des modèles (pour Flask-Migrate) ───────────
     with app.app_context():
         from app.models import user, student, parent, teacher
+        from app.models import site_settings
         from app.models import program, application, article
         from app.models import gallery, advertisement, payment
         from app.models import attendance, event

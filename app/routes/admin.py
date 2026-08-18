@@ -16,6 +16,7 @@ from app.models.advertisement import Advertisement
 from app.models.payment import Payment
 from app.models.event import Event
 from app.models.teacher import Teacher
+from app.models.site_settings import SiteSettings
 from app.utils.decorators import admin_required
 from app.utils.helpers import slugify, allowed_file
 from app.utils.image_handler import save_upload, save_logo
@@ -475,3 +476,75 @@ def paiements():
     """Gestion des paiements"""
     payments = Payment.query.order_by(Payment.payment_date.desc()).all()
     return render_template('admin/paiements.html', payments=payments)
+
+# ══════════════════════════════════════════════════════════════
+# ROUTES CMS — Configuration complète du site
+# L'admin modifie tout sans toucher au code Python
+# ══════════════════════════════════════════════════════════════
+
+@admin_bp.route('/configuration')
+@login_required
+@admin_required
+def configuration():
+    """Page principale de configuration du site"""
+    categories = {
+        'identite':     ('🏫', 'Identité du centre',    SiteSettings.get_all_by_category('identite')),
+        'contact':      ('📞', 'Contact & Localisation', SiteSettings.get_all_by_category('contact')),
+        'scolaire':     ('📅', 'Année scolaire',         SiteSettings.get_all_by_category('scolaire')),
+        'statistiques': ('📊', 'Statistiques du site',  SiteSettings.get_all_by_category('statistiques')),
+        'apparence':    ('🎨', 'Apparence',              SiteSettings.get_all_by_category('apparence')),
+        'seo':          ('🔍', 'SEO & Référencement',    SiteSettings.get_all_by_category('seo')),
+    }
+    return render_template('admin/configuration.html', categories=categories)
+
+
+@admin_bp.route('/configuration/sauvegarder', methods=['POST'])
+@login_required
+@admin_required
+def sauvegarder_configuration():
+    """Sauvegarde tous les paramètres du formulaire"""
+    saved  = 0
+    errors = 0
+
+    for key, value in request.form.items():
+        if key == 'csrf_token':
+            continue
+        try:
+            SiteSettings.set(key, value.strip())
+            saved += 1
+        except Exception as e:
+            errors += 1
+            print(f"[CONFIG ERROR] {key}: {e}")
+
+    if errors == 0:
+        flash(f'✅ {saved} paramètre(s) mis à jour avec succès !', 'success')
+    else:
+        flash(f'⚠️ {saved} sauvegardés, {errors} erreur(s).', 'warning')
+
+    return redirect(url_for('admin.configuration'))
+
+
+@admin_bp.route('/configuration/statistiques', methods=['POST'])
+@login_required
+@admin_required
+def sauvegarder_statistiques():
+    """Sauvegarde rapide des statistiques"""
+    stats_keys = ['stat_eleves', 'stat_enseignants', 'stat_reussite', 'stat_experience']
+    for key in stats_keys:
+        value = request.form.get(key, '').strip()
+        if value:
+            SiteSettings.set(key, value)
+    flash('✅ Statistiques mises à jour !', 'success')
+    return redirect(url_for('admin.configuration') + '#statistiques')
+
+
+@admin_bp.route('/configuration/reset', methods=['POST'])
+@login_required
+@admin_required
+def reset_configuration():
+    """Remet une clé à sa valeur par défaut"""
+    key = request.form.get('key', '')
+    if key:
+        SiteSettings.set(key, request.form.get('default_value', ''))
+        flash(f'✅ Paramètre {key} réinitialisé.', 'info')
+    return redirect(url_for('admin.configuration'))
