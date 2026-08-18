@@ -1,0 +1,187 @@
+{#
+  ============================================================
+  FICHIER #45 — admin/eleves.html
+  Interface de gestion de la liste complète des élèves inscrits
+  au Centre Al-Bir. Affiche les informations de chaque élève
+  (nom, programme, date d'inscription, statut), avec une barre
+  de recherche en temps réel. Accessible uniquement aux admins.
+  Lien vers la fiche détaillée de chaque élève.
+  ============================================================
+#}
+{% extends "base.html" %}
+{% block title %}Gestion des Élèves — Admin Al-Bir{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 pt-16 flex">
+
+  <aside class="fixed left-0 top-16 h-screen w-64 bg-primary-950 text-white z-40
+                overflow-y-auto shadow-2xl">
+    <div class="p-6 border-b border-white/10">
+      <p class="text-white font-bold text-sm">{{ current_user.full_name }}</p>
+      <p class="text-yellow-400 text-xs">Administrateur</p>
+    </div>
+    <nav class="p-4 space-y-1">
+      {% for ep, icon, label in [
+        ('admin.dashboard',   '📊','Tableau de bord'),
+        ('admin.inscriptions','📝','Inscriptions'),
+        ('admin.eleves',      '👥','Élèves'),
+        ('admin.enseignants', '🎓','Enseignants'),
+        ('admin.programmes',  '📚','Programmes'),
+        ('admin.actualites',  '📰','Actualités'),
+        ('admin.galerie',     '🖼️','Galerie'),
+        ('admin.publicites',  '📢','Publicités'),
+        ('admin.parametres',  '⚙️','Paramètres'),
+      ] %}
+      <a href="{{ url_for(ep) }}"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
+                {% if request.endpoint == ep %}bg-yellow-400 text-primary-900 font-bold
+                {% else %}text-white/70 hover:bg-white/10 hover:text-white{% endif %}">
+        <span>{{ icon }}</span> {{ label }}
+      </a>
+      {% endfor %}
+    </nav>
+  </aside>
+
+  <main class="ml-64 flex-1 p-8">
+
+    <!-- En-tête -->
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-2xl font-bold font-serif text-gray-900">Gestion des Élèves</h1>
+        <p class="text-gray-500 text-sm mt-1">
+          {{ students|length }} élève(s) enregistré(s) — Année {{ site.school_year }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Recherche rapide -->
+    <div class="mb-6">
+      <div class="relative max-w-md">
+        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+        <input type="text" id="search-eleves"
+               placeholder="Rechercher un élève par nom..."
+               oninput="filterEleves(this.value)"
+               class="w-full pl-11 pr-4 py-3 rounded-xl border-2 border-gray-200
+                      focus:border-primary-500 focus:outline-none text-sm bg-white
+                      transition-all shadow-sm" />
+      </div>
+    </div>
+
+    <!-- Tableau élèves -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      {% if students %}
+      <div class="overflow-x-auto">
+        <table class="w-full" id="eleves-table">
+          <thead>
+            <tr class="bg-gray-50 border-b border-gray-100">
+              {% for col in ['Élève', 'Programme', 'Âge', 'Inscription', 'Statut', 'Actions'] %}
+              <th class="px-5 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                {{ col }}
+              </th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-50" id="eleves-body">
+            {% for student in students %}
+            <tr class="hover:bg-gray-50 transition-colors eleve-row"
+                data-name="{{ student.full_name|lower }}">
+
+              <!-- Élève -->
+              <td class="px-5 py-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl flex items-center justify-center
+                              font-bold text-sm flex-shrink-0 overflow-hidden
+                              {% if not student.photo_url %}bg-yellow-100 text-yellow-800{% endif %}">
+                    {% if student.photo_url %}
+                    <img src="{{ student.photo_url }}" class="w-full h-full object-cover rounded-xl" alt="" />
+                    {% else %}
+                    {{ student.full_name[0].upper() if student.full_name else '?' }}
+                    {% endif %}
+                  </div>
+                  <div>
+                    <p class="font-semibold text-gray-800 text-sm">{{ student.full_name }}</p>
+                    {% if student.student_number %}
+                    <p class="text-gray-400 text-xs font-mono">{{ student.student_number }}</p>
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+
+              <!-- Programme -->
+              <td class="px-5 py-4">
+                <span class="text-xs font-medium text-gray-600 bg-gray-100
+                             px-2.5 py-1 rounded-lg">
+                  {{ student.program.icon ~ ' ' ~ student.program.name_fr[:25] if student.program else '—' }}
+                </span>
+              </td>
+
+              <!-- Âge -->
+              <td class="px-5 py-4">
+                <p class="text-gray-600 text-sm">
+                  {{ student.age ~ ' ans' if student.age else '—' }}
+                </p>
+              </td>
+
+              <!-- Date d'inscription -->
+              <td class="px-5 py-4">
+                <p class="text-gray-600 text-xs">
+                  {{ student.enrollment_date.strftime('%d/%m/%Y') if student.enrollment_date else '—' }}
+                </p>
+                <p class="text-gray-400 text-xs">{{ student.school_year }}</p>
+              </td>
+
+              <!-- Statut -->
+              <td class="px-5 py-4">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full
+                             text-xs font-semibold
+                             {% if student.status == 'active' %}bg-green-100 text-green-700
+                             {% else %}bg-gray-100 text-gray-500{% endif %}">
+                  <span class="w-1.5 h-1.5 rounded-full
+                               {% if student.status == 'active' %}bg-green-500
+                               {% else %}bg-gray-400{% endif %}">
+                  </span>
+                  {{ 'Actif' if student.status == 'active' else student.status|title }}
+                </span>
+              </td>
+
+              <!-- Actions -->
+              <td class="px-5 py-4">
+                <div class="flex items-center gap-2">
+                  <a href="{{ url_for('admin.eleve_detail', id=student.id) }}"
+                     class="px-3 py-1.5 bg-primary-100 hover:bg-primary-200 text-primary-800
+                            text-xs font-semibold rounded-lg transition-colors">
+                    Voir →
+                  </a>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="py-16 text-center">
+        <p class="text-5xl mb-4">👥</p>
+        <p class="text-gray-500 font-medium">Aucun élève enregistré.</p>
+        <p class="text-gray-400 text-sm mt-1">
+          Les élèves sont ajoutés lors de l'acceptation des dossiers d'inscription.
+        </p>
+      </div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+// Recherche en temps réel dans le tableau élèves
+function filterEleves(query) {
+  const q = query.toLowerCase().trim();
+  document.querySelectorAll('.eleve-row').forEach(row => {
+    const name = row.dataset.name || '';
+    row.style.display = (!q || name.includes(q)) ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

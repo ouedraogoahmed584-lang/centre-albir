@@ -1,0 +1,213 @@
+{#
+  ============================================================
+  FICHIER #44 — admin/actualites.html
+  Page d'administration des actualités et annonces du Centre
+  Al-Bir. Liste tous les articles (publiés et brouillons) avec
+  leur statut, catégorie et date. Permet de publier, dépublier,
+  épingler et supprimer chaque article. Bouton de création
+  directe d'un nouvel article en haut de page.
+  ============================================================
+#}
+{% extends "base.html" %}
+{% block title %}Gestion des Actualités — Admin Al-Bir{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 pt-16 flex">
+
+  <aside class="fixed left-0 top-16 h-screen w-64 bg-primary-950 text-white z-40
+                overflow-y-auto shadow-2xl">
+    <div class="p-6 border-b border-white/10">
+      <p class="text-white font-bold text-sm">{{ current_user.full_name }}</p>
+      <p class="text-yellow-400 text-xs">Administrateur</p>
+    </div>
+    <nav class="p-4 space-y-1">
+      {% for ep, icon, label in [
+        ('admin.dashboard',   '📊','Tableau de bord'),
+        ('admin.inscriptions','📝','Inscriptions'),
+        ('admin.eleves',      '👥','Élèves'),
+        ('admin.programmes',  '📚','Programmes'),
+        ('admin.actualites',  '📰','Actualités'),
+        ('admin.galerie',     '🖼️','Galerie'),
+        ('admin.publicites',  '📢','Publicités'),
+        ('admin.parametres',  '⚙️','Paramètres'),
+      ] %}
+      <a href="{{ url_for(ep) }}"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
+                {% if request.endpoint == ep %}bg-yellow-400 text-primary-900 font-bold
+                {% else %}text-white/70 hover:bg-white/10 hover:text-white{% endif %}">
+        <span>{{ icon }}</span> {{ label }}
+      </a>
+      {% endfor %}
+    </nav>
+  </aside>
+
+  <main class="ml-64 flex-1 p-8">
+
+    <!-- En-tête -->
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-2xl font-bold font-serif text-gray-900">Gestion des Actualités</h1>
+        <p class="text-gray-500 text-sm mt-1">{{ articles|length }} article(s) au total</p>
+      </div>
+      <a href="{{ url_for('admin.nouvel_article') }}"
+         class="flex items-center gap-2 px-5 py-3 bg-primary-900 hover:bg-primary-800
+                text-white font-bold rounded-xl text-sm transition-all shadow-sm hover:scale-105">
+        + Nouvel article
+      </a>
+    </div>
+
+    <!-- Tableau des articles -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      {% if articles %}
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="bg-gray-50 border-b border-gray-100">
+              <th class="px-5 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                Article
+              </th>
+              <th class="px-5 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                Catégorie
+              </th>
+              <th class="px-5 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                Statut
+              </th>
+              <th class="px-5 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                Date
+              </th>
+              <th class="px-5 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-50">
+            {% for article in articles %}
+            <tr class="hover:bg-gray-50 transition-colors">
+
+              <!-- Titre + image miniature -->
+              <td class="px-5 py-4">
+                <div class="flex items-center gap-4">
+                  <div class="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0
+                              flex items-center justify-center">
+                    {% if article.image_url %}
+                    <img src="{{ article.image_url }}" alt=""
+                         class="w-full h-full object-cover" />
+                    {% else %}
+                    <span class="text-2xl">📰</span>
+                    {% endif %}
+                  </div>
+                  <div class="min-w-0">
+                    <p class="font-semibold text-gray-800 text-sm truncate max-w-xs">
+                      {% if article.is_pinned %}
+                      <span class="text-yellow-500 mr-1">📌</span>
+                      {% endif %}
+                      {{ article.title_fr }}
+                    </p>
+                    {% if article.excerpt_fr %}
+                    <p class="text-gray-400 text-xs truncate max-w-xs mt-0.5">
+                      {{ article.excerpt_fr }}
+                    </p>
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+
+              <!-- Catégorie -->
+              <td class="px-5 py-4">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold
+                  {% if article.category == 'annonce' %}bg-yellow-100 text-yellow-700
+                  {% elif article.category == 'evenement' %}bg-blue-100 text-blue-700
+                  {% elif article.category == 'resultat' %}bg-green-100 text-green-700
+                  {% else %}bg-gray-100 text-gray-600{% endif %}">
+                  {{ article.category|title }}
+                </span>
+              </td>
+
+              <!-- Statut -->
+              <td class="px-5 py-4">
+                {% if article.is_published %}
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full
+                             text-xs font-semibold bg-green-100 text-green-700">
+                  <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                  Publié
+                </span>
+                {% else %}
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full
+                             text-xs font-semibold bg-gray-100 text-gray-500">
+                  <span class="w-1.5 h-1.5 bg-gray-400 rounded-full"></span>
+                  Brouillon
+                </span>
+                {% endif %}
+              </td>
+
+              <!-- Date -->
+              <td class="px-5 py-4">
+                <p class="text-gray-600 text-xs">
+                  {{ article.created_at.strftime('%d/%m/%Y') }}
+                </p>
+                {% if article.published_at %}
+                <p class="text-green-600 text-xs">
+                  Publié le {{ article.published_at.strftime('%d/%m/%Y') }}
+                </p>
+                {% endif %}
+              </td>
+
+              <!-- Actions -->
+              <td class="px-5 py-4">
+                <div class="flex items-center gap-2">
+                  <!-- Voir sur le site -->
+                  {% if article.is_published %}
+                  <a href="{{ url_for('public.article_detail', slug=article.slug) }}"
+                     target="_blank"
+                     class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700
+                            text-xs font-semibold rounded-lg transition-colors">
+                    Voir
+                  </a>
+                  {% endif %}
+                  <!-- Publier / Dépublier -->
+                  <form method="POST"
+                        action="{{ url_for('admin.toggle_article', id=article.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <button type="submit"
+                            class="px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors
+                                   {% if article.is_published %}
+                                     bg-orange-100 text-orange-700 hover:bg-orange-200
+                                   {% else %}
+                                     bg-green-100 text-green-700 hover:bg-green-200
+                                   {% endif %}">
+                      {% if article.is_published %}Dépublier{% else %}Publier{% endif %}
+                    </button>
+                  </form>
+                  <!-- Supprimer -->
+                  <form method="POST"
+                        action="{{ url_for('admin.supprimer_article', id=article.id) }}"
+                        onsubmit="return confirm('Supprimer cet article définitivement ?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <button type="submit"
+                            class="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-600
+                                   text-xs font-semibold rounded-lg transition-colors">
+                      🗑
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="py-16 text-center">
+        <p class="text-5xl mb-4">📰</p>
+        <p class="text-gray-500 font-medium">Aucun article créé.</p>
+        <a href="{{ url_for('admin.nouvel_article') }}"
+           class="inline-flex items-center gap-2 mt-4 px-6 py-3 bg-primary-900 text-white
+                  font-bold rounded-xl hover:bg-primary-800 transition-all text-sm">
+          + Créer le premier article
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}

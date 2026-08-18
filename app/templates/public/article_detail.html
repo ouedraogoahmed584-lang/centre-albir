@@ -1,0 +1,174 @@
+{#
+  ============================================================
+  FICHIER #49 — public/article_detail.html
+  Page de détail complet d'un article ou d'une annonce publiée
+  par le Centre Al-Bir. Affiche le titre bilingue, l'image de
+  couverture, le contenu complet en français et arabe, la date
+  de publication et la catégorie. Intègre des liens de retour
+  vers la liste des actualités et un bloc de contact rapide.
+  ============================================================
+#}
+{% extends "base.html" %}
+{% block title %}{{ article.title_fr }} — Centre Al-Bir{% endblock %}
+{% block description %}{{ article.excerpt_fr if article.excerpt_fr else article.title_fr }}{% endblock %}
+
+{% block content %}
+<div class="pt-16 bg-ivory min-h-screen">
+
+  <!-- ── HERO ARTICLE ─────────────────────────────── -->
+  <div class="relative"
+       style="background:linear-gradient(135deg,#022C22 0%,#064E3B 70%,#065F46 100%);">
+    <div class="pattern-overlay absolute inset-0 opacity-10"></div>
+
+    {% if article.image_url %}
+    <div class="absolute inset-0 overflow-hidden">
+      <img src="{{ article.image_url }}" alt="{{ article.title_fr }}"
+           class="w-full h-full object-cover opacity-20" />
+    </div>
+    {% endif %}
+
+    <div class="relative z-10 max-w-4xl mx-auto px-4 py-20">
+      <a href="{{ url_for('public.actualites') }}"
+         class="inline-flex items-center gap-2 text-white/60 hover:text-yellow-400
+                transition-colors text-sm mb-8">
+        ← Toutes les actualités
+      </a>
+
+      <div class="flex flex-wrap gap-2 mb-5">
+        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold
+                     {% if article.category == 'annonce' %}bg-yellow-400 text-primary-900
+                     {% elif article.category == 'evenement' %}bg-blue-400 text-white
+                     {% elif article.category == 'resultat' %}bg-green-400 text-white
+                     {% else %}bg-white/20 text-white{% endif %}">
+          {{ article.category|title }}
+        </span>
+        {% if article.is_pinned %}
+        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold
+                     bg-white/20 text-white">
+          📌 À la une
+        </span>
+        {% endif %}
+      </div>
+
+      <h1 class="font-serif text-3xl md:text-4xl font-bold text-white mb-4"
+          data-aos="fade-up">
+        {{ article.title_fr }}
+      </h1>
+
+      {% if article.title_ar %}
+      <p class="font-arabic text-yellow-300 text-xl text-right" data-aos="fade-up" data-aos-delay="100">
+        {{ article.title_ar }}
+      </p>
+      {% endif %}
+
+      {% if article.published_at %}
+      <p class="text-white/50 text-sm mt-4">
+        Publié le {{ article.published_at.strftime('%d %B %Y') }}
+      </p>
+      {% endif %}
+    </div>
+
+    <div class="absolute bottom-0 left-0 right-0">
+      <svg viewBox="0 0 1440 60" fill="none"><path d="M0 60L1440 60L1440 15C1200 45 960 60 720 52C480 44 240 15 0 30V60Z" fill="#FAF7F0"/></svg>
+    </div>
+  </div>
+
+  <!-- ── CONTENU ─────────────────────────────────── -->
+  <div class="max-w-4xl mx-auto px-4 py-16">
+    <div class="grid lg:grid-cols-3 gap-8">
+
+      <!-- Article principal -->
+      <div class="lg:col-span-2">
+
+        <!-- Image de couverture grande -->
+        {% if article.image_url %}
+        <div class="rounded-2xl overflow-hidden shadow-xl mb-8">
+          <img src="{{ article.image_url }}" alt="{{ article.title_fr }}"
+               class="w-full h-72 object-cover" />
+        </div>
+        {% endif %}
+
+        <!-- Contenu FR -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 mb-6">
+          <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed text-sm
+                      [&>p]:mb-4 [&>ul]:pl-5 [&>ul>li]:mb-2 [&>ul>li]:list-disc
+                      [&>h2]:font-serif [&>h2]:text-primary-900 [&>h2]:text-xl [&>h2]:font-bold
+                      [&>h2]:mt-6 [&>h2]:mb-3">
+            {{ article.content_fr | safe }}
+          </div>
+        </div>
+
+        <!-- Contenu Arabe -->
+        {% if article.content_ar %}
+        <div class="bg-primary-50 rounded-2xl border border-primary-100 shadow-sm p-8">
+          <p class="text-xs font-bold text-primary-700 uppercase tracking-widest mb-5">
+            النسخة العربية
+          </p>
+          <div class="font-arabic text-gray-700 text-right leading-loose text-lg
+                      prose-p:mb-4">
+            {{ article.content_ar | safe }}
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+
+      <!-- Sidebar -->
+      <div class="space-y-5">
+
+        <!-- Infos article -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <h3 class="font-bold text-gray-800 font-serif mb-4">Informations</h3>
+          <div class="space-y-3 text-sm">
+            <div class="flex items-center justify-between py-2 border-b border-gray-50">
+              <span class="text-gray-400">Catégorie</span>
+              <span class="font-semibold text-gray-700">{{ article.category|title }}</span>
+            </div>
+            {% if article.published_at %}
+            <div class="flex items-center justify-between py-2 border-b border-gray-50">
+              <span class="text-gray-400">Publié le</span>
+              <span class="font-semibold text-gray-700">
+                {{ article.published_at.strftime('%d/%m/%Y') }}
+              </span>
+            </div>
+            {% endif %}
+            <div class="flex items-center justify-between py-2">
+              <span class="text-gray-400">Centre</span>
+              <span class="font-semibold text-primary-800">Al-Bir</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact rapide -->
+        <div class="bg-primary-900 rounded-2xl p-5 text-center">
+          <p class="text-yellow-400 text-xs font-bold uppercase tracking-widest mb-2">
+            Une question ?
+          </p>
+          <p class="text-white/70 text-xs mb-4">
+            Contactez-nous directement
+          </p>
+          <a href="https://wa.me/{{ site.phone2_raw }}" target="_blank"
+             class="block py-3 bg-green-500 hover:bg-green-400 text-white font-bold
+                    rounded-xl text-sm transition-all hover:scale-105 mb-2">
+            💬 WhatsApp
+          </a>
+          <a href="{{ url_for('public.admissions') }}"
+             class="block py-3 bg-yellow-400 hover:bg-yellow-300 text-primary-900 font-bold
+                    rounded-xl text-sm transition-all">
+            ✍️ S'inscrire
+          </a>
+        </div>
+
+        <!-- Lien retour -->
+        <a href="{{ url_for('public.actualites') }}"
+           class="block text-center py-3 border-2 border-primary-900 text-primary-900
+                  font-semibold rounded-xl hover:bg-primary-900 hover:text-white
+                  transition-all text-sm">
+          ← Toutes les actualités
+        </a>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

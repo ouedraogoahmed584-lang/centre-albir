@@ -1,0 +1,218 @@
+{#
+  ============================================================
+  FICHIER #47 — admin/programme_form.html
+  Formulaire de création d'un nouveau programme d'enseignement
+  pour le Centre Al-Bir. L'administrateur définit le nom en
+  français et arabe, la description, les objectifs, le département
+  (islamique ou français), la langue d'enseignement, les tranches
+  d'âge, l'icône affichée et l'ordre d'apparition sur le site.
+  ============================================================
+#}
+{% extends "base.html" %}
+{% block title %}
+  {% if program %}Modifier le programme{% else %}Nouveau programme{% endif %} — Admin Al-Bir
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 pt-16 flex">
+
+  <aside class="fixed left-0 top-16 h-screen w-64 bg-primary-950 text-white z-40
+                overflow-y-auto shadow-2xl">
+    <div class="p-6 border-b border-white/10">
+      <p class="text-white font-bold text-sm">{{ current_user.full_name }}</p>
+      <p class="text-yellow-400 text-xs">Administrateur</p>
+    </div>
+    <nav class="p-4 space-y-1">
+      {% for ep, icon, label in [
+        ('admin.dashboard',  '📊','Tableau de bord'),
+        ('admin.programmes', '📚','Programmes'),
+        ('admin.parametres', '⚙️','Paramètres'),
+      ] %}
+      <a href="{{ url_for(ep) }}"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
+                text-white/70 hover:bg-white/10 hover:text-white">
+        <span>{{ icon }}</span> {{ label }}
+      </a>
+      {% endfor %}
+    </nav>
+  </aside>
+
+  <main class="ml-64 flex-1 p-8 max-w-4xl">
+
+    <div class="mb-6">
+      <a href="{{ url_for('admin.programmes') }}"
+         class="inline-flex items-center gap-2 text-gray-500 hover:text-primary-700
+                transition-colors text-sm mb-4">
+        ← Retour aux programmes
+      </a>
+      <h1 class="text-2xl font-bold font-serif text-gray-900">
+        {% if program %}Modifier le programme{% else %}Nouveau programme{% endif %}
+      </h1>
+    </div>
+
+    <form method="POST"
+          action="{{ url_for('admin.nouveau_programme') }}"
+          class="space-y-6">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+      <!-- Noms -->
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <h2 class="font-bold text-gray-800 font-serif mb-5">Identité du programme</h2>
+        <div class="space-y-4">
+
+          <!-- Icône + Nom FR -->
+          <div class="grid grid-cols-4 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-wide">
+                Icône
+              </label>
+              <input type="text" name="icon"
+                     value="{{ program.icon if program else '📖' }}"
+                     placeholder="📖"
+                     class="w-full px-4 py-3 rounded-xl border-2 border-gray-200
+                            focus:border-primary-500 focus:outline-none text-2xl text-center" />
+            </div>
+            <div class="col-span-3">
+              <label class="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-wide">
+                Nom (Français) <span class="text-red-500">*</span>
+              </label>
+              <input type="text" name="name_fr" required
+                     value="{{ program.name_fr if program else '' }}"
+                     placeholder="Ex: Mémorisation du Coran (Hifz)"
+                     class="w-full px-4 py-3 rounded-xl border-2 border-gray-200
+                            focus:border-primary-500 focus:outline-none text-sm
+                            bg-gray-50 focus:bg-white transition-all" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-wide">
+              <span class="font-arabic">الاسم (عربي)</span>
+            </label>
+            <input type="text" name="name_ar" dir="rtl"
+                   value="{{ program.name_ar if program else '' }}"
+                   placeholder="حفظ القرآن الكريم"
+                   class="w-full px-4 py-3 rounded-xl border-2 border-gray-200
+                          focus:border-primary-500 focus:outline-none text-sm
+                          bg-gray-50 focus:bg-white transition-all font-arabic" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-wide">
+              Description (Français)
+            </label>
+            <textarea name="description_fr" rows="3"
+                      placeholder="Description complète du programme..."
+                      class="w-full px-4 py-3 rounded-xl border-2 border-gray-200
+                             focus:border-primary-500 focus:outline-none text-sm resize-none
+                             bg-gray-50 focus:bg-white transition-all">{{ program.description_fr if program else '' }}</textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-wide">
+              Objectifs (un par ligne)
+            </label>
+            <textarea name="objectives_fr" rows="4"
+                      placeholder="Mémorisation progressive lettre par lettre&#10;Révision régulière et consolidation&#10;Maîtrise du Tajwid..."
+                      class="w-full px-4 py-3 rounded-xl border-2 border-gray-200
+                             focus:border-primary-500 focus:outline-none text-sm resize-none
+                             bg-gray-50 focus:bg-white transition-all">{{ program.objectives_fr if program else '' }}</textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Configuration -->
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <h2 class="font-bold text-gray-800 font-serif mb-5">Configuration</h2>
+        <div class="grid md:grid-cols-2 gap-5">
+
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-wide">
+              Département <span class="text-red-500">*</span>
+            </label>
+            <select name="department"
+                    class="w-full px-4 py-3 rounded-xl border-2 border-gray-200
+                           focus:border-primary-500 focus:outline-none text-sm bg-white">
+              <option value="islamic" {% if not program or program.department == 'islamic' %}selected{% endif %}>
+                🕌 Islamique
+              </option>
+              <option value="french" {% if program and program.department == 'french' %}selected{% endif %}>
+                🇫🇷 Français
+              </option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-wide">
+              Langue d'enseignement
+            </label>
+            <input type="text" name="language"
+                   value="{{ program.language if program else 'Arabe' }}"
+                   placeholder="Ex: Arabe / Français"
+                   class="w-full px-4 py-3 rounded-xl border-2 border-gray-200
+                          focus:border-primary-500 focus:outline-none text-sm
+                          bg-gray-50 focus:bg-white transition-all" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-wide">
+              Âge minimum
+            </label>
+            <input type="number" name="min_age" min="1" max="100"
+                   value="{{ program.min_age if program else '15' }}"
+                   class="w-full px-4 py-3 rounded-xl border-2 border-gray-200
+                          focus:border-primary-500 focus:outline-none text-sm" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-wide">
+              Âge maximum
+            </label>
+            <input type="number" name="max_age" min="1" max="100"
+                   value="{{ program.max_age if program else '50' }}"
+                   class="w-full px-4 py-3 rounded-xl border-2 border-gray-200
+                          focus:border-primary-500 focus:outline-none text-sm" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-wide">
+              Durée
+            </label>
+            <input type="text" name="duration"
+                   value="{{ program.duration if program else '' }}"
+                   placeholder="Ex: Octobre – Juillet (10 mois)"
+                   class="w-full px-4 py-3 rounded-xl border-2 border-gray-200
+                          focus:border-primary-500 focus:outline-none text-sm
+                          bg-gray-50 focus:bg-white transition-all" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-wide">
+              Ordre d'affichage
+            </label>
+            <input type="number" name="sort_order" min="0"
+                   value="{{ program.sort_order if program else '0' }}"
+                   class="w-full px-4 py-3 rounded-xl border-2 border-gray-200
+                          focus:border-primary-500 focus:outline-none text-sm" />
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Boutons -->
+      <div class="flex gap-4">
+        <button type="submit"
+                class="flex-1 py-4 bg-primary-900 hover:bg-primary-800 text-white font-bold
+                       rounded-2xl transition-all hover:scale-105 shadow-lg">
+          💾 {% if program %}Mettre à jour{% else %}Créer le programme{% endif %}
+        </button>
+        <a href="{{ url_for('admin.programmes') }}"
+           class="px-8 py-4 border-2 border-gray-200 text-gray-600 font-semibold
+                  rounded-2xl hover:bg-gray-50 transition-colors">
+          Annuler
+        </a>
+      </div>
+    </form>
+  </main>
+</div>
+{% endblock %}

@@ -1,0 +1,329 @@
+{#
+  ============================================================
+  FICHIER #43 — admin/article_form.html
+  Formulaire de création et d'édition d'un article ou annonce
+  pour le site public du Centre Al-Bir. Permet à l'administrateur
+  de rédiger un contenu bilingue (français + arabe), d'uploader
+  une image de couverture, de choisir la catégorie, d'épingler
+  l'article et de le publier immédiatement ou en brouillon.
+  ============================================================
+#}
+{% extends "base.html" %}
+{% block title %}
+  {% if article %}Modifier l'article{% else %}Nouvel article{% endif %} — Admin Al-Bir
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 pt-16 flex">
+
+  <!-- Sidebar -->
+  <aside class="fixed left-0 top-16 h-screen w-64 bg-primary-950 text-white z-40
+                overflow-y-auto shadow-2xl">
+    <div class="p-6 border-b border-white/10">
+      <p class="text-white font-bold text-sm">{{ current_user.full_name }}</p>
+      <p class="text-yellow-400 text-xs">Administrateur</p>
+    </div>
+    <nav class="p-4 space-y-1">
+      {% for ep, icon, label in [
+        ('admin.dashboard',   '📊','Tableau de bord'),
+        ('admin.inscriptions','📝','Inscriptions'),
+        ('admin.eleves',      '👥','Élèves'),
+        ('admin.programmes',  '📚','Programmes'),
+        ('admin.actualites',  '📰','Actualités'),
+        ('admin.galerie',     '🖼️','Galerie'),
+        ('admin.publicites',  '📢','Publicités'),
+        ('admin.parametres',  '⚙️','Paramètres'),
+      ] %}
+      <a href="{{ url_for(ep) }}"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
+                {% if request.endpoint == ep %}bg-yellow-400 text-primary-900 font-bold
+                {% else %}text-white/70 hover:bg-white/10 hover:text-white{% endif %}">
+        <span>{{ icon }}</span> {{ label }}
+      </a>
+      {% endfor %}
+      <div class="border-t border-white/10 pt-3 mt-3">
+        <a href="{{ url_for('auth.deconnexion') }}"
+           class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm
+                  text-red-400 hover:bg-red-500/20 transition-all">
+          🚪 Déconnexion
+        </a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- Contenu principal -->
+  <main class="ml-64 flex-1 p-8">
+
+    <!-- En-tête -->
+    <div class="mb-6">
+      <a href="{{ url_for('admin.actualites') }}"
+         class="inline-flex items-center gap-2 text-gray-500 hover:text-primary-700
+                transition-colors text-sm mb-4">
+        ← Retour aux actualités
+      </a>
+      <h1 class="text-2xl font-bold font-serif text-gray-900">
+        {% if article %}Modifier l'article{% else %}Nouvel article{% endif %}
+      </h1>
+    </div>
+
+    <form method="POST"
+          enctype="multipart/form-data"
+          action="{{ url_for('admin.nouvel_article') }}"
+          class="grid lg:grid-cols-3 gap-6">
+
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+      <!-- Colonne principale -->
+      <div class="lg:col-span-2 space-y-5">
+
+        <!-- Titre FR -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <h2 class="font-bold text-gray-800 font-serif mb-4">Contenu principal</h2>
+          <div class="space-y-4">
+
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">
+                Titre (Français) <span class="text-red-500">*</span>
+              </label>
+              <input type="text" name="title_fr" required
+                     value="{{ article.title_fr if article else '' }}"
+                     placeholder="Titre de l'article ou de l'annonce"
+                     class="w-full px-4 py-3 rounded-xl border-2 border-gray-200
+                            focus:border-primary-500 focus:outline-none text-sm
+                            bg-gray-50 focus:bg-white transition-all" />
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">
+                <span class="font-arabic">العنوان (عربي)</span>
+                <span class="text-gray-400 text-xs font-normal ml-1">(optionnel)</span>
+              </label>
+              <input type="text" name="title_ar" dir="rtl"
+                     value="{{ article.title_ar if article else '' }}"
+                     placeholder="عنوان المقال بالعربية"
+                     class="w-full px-4 py-3 rounded-xl border-2 border-gray-200
+                            focus:border-primary-500 focus:outline-none text-sm
+                            bg-gray-50 focus:bg-white transition-all font-arabic" />
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">
+                Extrait / Résumé
+                <span class="text-gray-400 text-xs font-normal ml-1">(affiché sur la liste)</span>
+              </label>
+              <textarea name="excerpt_fr" rows="2"
+                        placeholder="Résumé court affiché dans la liste des articles..."
+                        class="w-full px-4 py-3 rounded-xl border-2 border-gray-200
+                               focus:border-primary-500 focus:outline-none text-sm resize-none
+                               bg-gray-50 focus:bg-white transition-all">{{ article.excerpt_fr if article else '' }}</textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contenu complet -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <h2 class="font-bold text-gray-800 font-serif mb-4">Contenu de l'article</h2>
+          <div class="space-y-4">
+
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">
+                Contenu (Français) <span class="text-red-500">*</span>
+              </label>
+              <!-- Barre d'outils simple -->
+              <div class="flex gap-2 mb-2 p-2 bg-gray-50 rounded-xl border border-gray-200">
+                {% for icon, cmd in [('B','bold'),('I','italic'),('U','underline')] %}
+                <button type="button"
+                        onclick="execCmd('{{ cmd }}')"
+                        class="w-8 h-8 flex items-center justify-center rounded-lg bg-white
+                               border border-gray-200 hover:bg-primary-100 hover:border-primary-300
+                               text-sm font-{{ 'bold' if cmd == 'bold' else 'normal' }}
+                               {{ 'italic' if cmd == 'italic' else '' }}
+                               {{ 'underline' if cmd == 'underline' else '' }}
+                               transition-all">
+                  {{ icon }}
+                </button>
+                {% endfor %}
+                <div class="w-px h-8 bg-gray-200"></div>
+                <button type="button" onclick="execCmd('insertUnorderedList')"
+                        class="w-8 h-8 flex items-center justify-center rounded-lg bg-white
+                               border border-gray-200 hover:bg-primary-100 text-sm transition-all">
+                  ≡
+                </button>
+              </div>
+              <div id="content-fr-editor"
+                   contenteditable="true"
+                   class="w-full min-h-40 px-4 py-3 rounded-xl border-2 border-gray-200
+                          focus:border-primary-500 focus:outline-none text-sm
+                          bg-gray-50 focus:bg-white transition-all leading-relaxed"
+                   oninput="syncContent()">{{ article.content_fr if article else '' }}</div>
+              <textarea name="content_fr" id="content_fr_hidden"
+                        class="hidden">{{ article.content_fr if article else '' }}</textarea>
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">
+                <span class="font-arabic">المحتوى (عربي)</span>
+                <span class="text-gray-400 text-xs font-normal ml-1">(optionnel)</span>
+              </label>
+              <textarea name="content_ar" dir="rtl" rows="6"
+                        placeholder="محتوى المقال بالعربية..."
+                        class="w-full px-4 py-3 rounded-xl border-2 border-gray-200
+                               focus:border-primary-500 focus:outline-none text-sm resize-none
+                               bg-gray-50 focus:bg-white transition-all font-arabic">{{ article.content_ar if article else '' }}</textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Image de couverture -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <h2 class="font-bold text-gray-800 font-serif mb-4">Image de couverture</h2>
+          {% if article and article.image_url %}
+          <div class="mb-4">
+            <p class="text-xs text-gray-500 mb-2">Image actuelle :</p>
+            <img src="{{ article.image_url }}" alt="Image actuelle"
+                 class="h-32 rounded-xl object-cover border border-gray-100" />
+          </div>
+          {% endif %}
+          <label class="flex items-center gap-3 cursor-pointer group"
+                 onclick="document.getElementById('article-img').click()">
+            <input type="file" name="image" id="article-img" accept="image/*"
+                   class="hidden" onchange="previewArticleImg(this)" />
+            <div class="flex-1 flex items-center gap-4 px-4 py-4 bg-gray-50 border-2
+                        border-dashed border-gray-200 rounded-xl group-hover:border-primary-400
+                        transition-colors">
+              <div id="article-img-preview"
+                   class="w-16 h-16 bg-gray-200 rounded-xl flex items-center
+                          justify-center text-2xl flex-shrink-0 overflow-hidden">
+                🖼️
+              </div>
+              <div>
+                <p id="article-img-name" class="text-gray-500 text-sm">
+                  Cliquer pour choisir une image de couverture
+                </p>
+                <p class="text-gray-400 text-xs mt-0.5">JPG, PNG, WebP — Max 16 Mo</p>
+              </div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Colonne droite — Options -->
+      <div class="space-y-5">
+
+        <!-- Catégorie -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <h3 class="font-bold text-gray-800 font-serif mb-4">Configuration</h3>
+          <div class="space-y-4">
+
+            <div>
+              <label class="block text-xs font-bold text-gray-600 mb-2 uppercase tracking-wide">
+                Catégorie
+              </label>
+              <select name="category"
+                      class="w-full px-4 py-3 rounded-xl border-2 border-gray-200
+                             focus:border-primary-500 focus:outline-none text-sm bg-white">
+                {% for val, label, icon in [
+                  ('annonce',   'Annonce',    '📢'),
+                  ('evenement', 'Événement',  '📅'),
+                  ('resultat',  'Résultat',   '🏆'),
+                  ('info',      'Information','ℹ️'),
+                ] %}
+                <option value="{{ val }}"
+                        {% if article and article.category == val %}selected{% endif %}>
+                  {{ icon }} {{ label }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Épingler -->
+            <div class="flex items-center gap-3 p-4 bg-yellow-50 rounded-xl border border-yellow-100">
+              <input type="checkbox" name="is_pinned" id="is_pinned"
+                     {% if article and article.is_pinned %}checked{% endif %}
+                     class="w-4 h-4 rounded text-yellow-500 border-gray-300" />
+              <label for="is_pinned" class="text-sm font-semibold text-yellow-800 cursor-pointer">
+                📌 Épingler en tête de liste
+              </label>
+            </div>
+
+            <!-- Publier -->
+            <div class="flex items-center gap-3 p-4 bg-green-50 rounded-xl border border-green-100">
+              <input type="checkbox" name="publish_now" id="publish_now"
+                     class="w-4 h-4 rounded text-green-500 border-gray-300" />
+              <label for="publish_now" class="text-sm font-semibold text-green-800 cursor-pointer">
+                ✅ Publier immédiatement
+              </label>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Boutons soumission -->
+        <div class="space-y-3">
+          <button type="submit"
+                  class="w-full py-4 bg-primary-900 hover:bg-primary-800 text-white font-bold
+                         rounded-2xl transition-all hover:scale-105 shadow-lg text-sm">
+            💾 {% if article %}Mettre à jour{% else %}Créer l'article{% endif %}
+          </button>
+          <a href="{{ url_for('admin.actualites') }}"
+             class="block text-center py-3 border-2 border-gray-200 text-gray-600
+                    font-semibold rounded-xl hover:bg-gray-50 transition-colors text-sm">
+            Annuler
+          </a>
+        </div>
+
+        <!-- Aide -->
+        <div class="bg-blue-50 rounded-2xl p-5 border border-blue-100">
+          <p class="font-bold text-blue-800 text-xs uppercase tracking-wide mb-2">💡 Conseils</p>
+          <ul class="space-y-1.5 text-xs text-blue-700">
+            <li>• Le résumé s'affiche dans la liste des articles</li>
+            <li>• Épinglez pour mettre en avant une annonce importante</li>
+            <li>• Sans publication, l'article est sauvegardé en brouillon</li>
+            <li>• L'image de couverture s'affiche sur la page liste et le détail</li>
+          </ul>
+        </div>
+
+      </div>
+    </form>
+  </main>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+// ══════════════════════════════════════════════════════
+// ÉDITEUR ARTICLE — synchronisation et utilitaires
+// ══════════════════════════════════════════════════════
+
+function execCmd(cmd) {
+  document.execCommand(cmd, false, null);
+  syncContent();
+}
+
+function syncContent() {
+  const editor = document.getElementById('content-fr-editor');
+  const hidden = document.getElementById('content_fr_hidden');
+  if (editor && hidden) {
+    hidden.value = editor.innerHTML;
+  }
+}
+
+function previewArticleImg(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const preview = document.getElementById('article-img-preview');
+      preview.innerHTML = '<img src="' + e.target.result +
+        '" class="w-full h-full object-cover rounded-xl" />';
+      document.getElementById('article-img-name').textContent = input.files[0].name;
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+// Synchroniser avant soumission
+document.querySelector('form').addEventListener('submit', function() {
+  syncContent();
+});
+</script>
+{% endblock %}

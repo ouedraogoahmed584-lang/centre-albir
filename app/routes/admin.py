@@ -351,3 +351,120 @@ def supprimer_photo(id):
     db.session.commit()
     flash('Photo supprimee.', 'success')
     return redirect(url_for('admin.galerie'))
+
+
+# ══════════════════════════════════════════════════════════════
+# ROUTES ARTICLES — toggle publication et suppression
+# Gèrent la publication/dépublication et la suppression d'articles
+# ══════════════════════════════════════════════════════════════
+
+@admin_bp.route('/actualites/<int:id>/toggle', methods=['POST'])
+@login_required
+@admin_required
+def toggle_article(id):
+    """Bascule la publication d'un article"""
+    article = Article.query.get_or_404(id)
+    if article.is_published:
+        article.is_published = False
+        article.published_at = None
+        flash('Article dépublié.', 'warning')
+    else:
+        article.publish()
+        flash('Article publié avec succès !', 'success')
+    db.session.commit()
+    return redirect(url_for('admin.actualites'))
+
+
+@admin_bp.route('/actualites/<int:id>/supprimer', methods=['POST'])
+@login_required
+@admin_required
+def supprimer_article(id):
+    """Supprime définitivement un article"""
+    article = Article.query.get_or_404(id)
+    db.session.delete(article)
+    db.session.commit()
+    flash('Article supprimé.', 'success')
+    return redirect(url_for('admin.actualites'))
+
+
+
+
+# ══════════════════════════════════════════════════════════════
+# ROUTES À AJOUTER À LA FIN DE app/routes/admin.py
+# Gestion utilisateurs et enseignants
+# ══════════════════════════════════════════════════════════════
+
+@admin_bp.route('/utilisateurs/<int:id>/toggle', methods=['POST'])
+@login_required
+@admin_required
+def toggle_user(id):
+    """Active ou désactive un compte utilisateur"""
+    user = User.query.get_or_404(id)
+    if user.id == current_user.id:
+        flash('Vous ne pouvez pas désactiver votre propre compte.', 'danger')
+        return redirect(url_for('admin.utilisateurs'))
+    user.is_active = not user.is_active
+    db.session.commit()
+    status = 'activé' if user.is_active else 'désactivé'
+    flash(f'Compte {status} avec succès.', 'success')
+    return redirect(url_for('admin.utilisateurs'))
+
+
+@admin_bp.route('/utilisateurs/creer', methods=['POST'])
+@login_required
+@admin_required
+def creer_utilisateur():
+    """Crée un nouveau compte utilisateur"""
+    full_name = request.form.get('full_name', '').strip()
+    email     = request.form.get('email', '').strip().lower()
+    password  = request.form.get('password', '').strip()
+    role      = request.form.get('role', 'parent')
+
+    if not all([full_name, email, password]):
+        flash('Tous les champs obligatoires doivent être remplis.', 'danger')
+        return redirect(url_for('admin.utilisateurs'))
+
+    if User.query.filter_by(email=email).first():
+        flash('Un compte avec cet email existe déjà.', 'danger')
+        return redirect(url_for('admin.utilisateurs'))
+
+    user = User(
+        email=email, full_name=full_name,
+        role=role, is_active=True,
+    )
+    user.set_password(password)
+    db.session.add(user)
+    db.session.commit()
+    flash(f'Compte créé pour {full_name} ({role}).', 'success')
+    return redirect(url_for('admin.utilisateurs'))
+
+
+@admin_bp.route('/enseignants/nouveau', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def nouvel_enseignant():
+    """Formulaire et traitement d'ajout d'enseignant"""
+    if request.method == 'POST':
+        from app.models.teacher import Teacher
+        teacher = Teacher(
+            full_name     = request.form.get('full_name', '').strip(),
+            speciality    = request.form.get('speciality', '').strip(),
+            qualification = request.form.get('qualification', '').strip(),
+            phone         = request.form.get('phone', '').strip(),
+            is_active     = True,
+            show_on_site  = request.form.get('show_on_site') == 'on',
+        )
+        db.session.add(teacher)
+        db.session.commit()
+        flash('Enseignant ajouté avec succès !', 'success')
+        return redirect(url_for('admin.enseignants'))
+    return render_template('admin/enseignant_form.html')
+
+
+@admin_bp.route('/eleves/<int:id>')
+@login_required
+@admin_required
+def eleve_detail(id):
+    """Détail d'un élève"""
+    student = Student.query.get_or_404(id)
+    return render_template('admin/eleve_detail.html', student=student)
