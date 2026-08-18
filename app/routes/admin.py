@@ -1,4 +1,4 @@
-# ══════════════════════════════════════════════════════════════
+﻿# ══════════════════════════════════════════════════════════════
 # IMPORTS admin.py — version corrigée avec tous les imports
 # current_user était manquant → crash sur toggle_user
 # ══════════════════════════════════════════════════════════════
@@ -170,7 +170,7 @@ def nouveau_programme():
 @admin_required
 def publicites():
     ads = Advertisement.query.order_by(Advertisement.position, Advertisement.sort_order).all()
-    return render_template('admin/publicites.html', ads=ads)
+    return render_template('admin/publicites.html', ad_list=ads)
 
 @admin_bp.route('/publicites/nouvelle', methods=['GET', 'POST'])
 @login_required

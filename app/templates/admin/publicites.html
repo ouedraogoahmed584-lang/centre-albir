@@ -1,7 +1,8 @@
 {#
-  admin/publicites.html — Gestion des publicités
-  ads = liste d'objets Advertisement (pas un dict)
-  Correction : suppression de .get() — accès direct aux attributs
+  admin/publicites.html — Gestion des publicités Centre Al-Bir
+  CORRECTION : variable renommée ad_list (liste SQLAlchemy)
+  pour éviter le conflit avec ads global (dict par position)
+  Accès direct aux attributs SQLAlchemy — plus de .get()
 #}
 {% extends "admin/admin_base.html" %}
 
@@ -20,144 +21,169 @@
 
 {% block admin_content %}
 
-<!-- En-tête -->
-<div class="admin-page-header">
-  <div>
-    <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.25rem;">
-      {{ ads|length if ads else 0 }} publicité(s) créée(s)
+<!-- Stats rapides -->
+<div style="display:grid;grid-template-columns:repeat(2,1fr);
+            gap:0.75rem;margin-bottom:1.25rem;">
+  <div style="background:var(--bg-card);border:1.5px solid var(--border-card);
+              border-radius:14px;padding:1rem;text-align:center;">
+    <p style="font-size:1.5rem;font-weight:800;color:var(--text-heading);">
+      {{ ad_list|length if ad_list else 0 }}
+    </p>
+    <p style="font-size:0.7rem;color:var(--text-muted);font-weight:600;
+              text-transform:uppercase;letter-spacing:0.04em;">
+      Total
+    </p>
+  </div>
+  <div style="background:var(--bg-card);border:1.5px solid var(--border-card);
+              border-radius:14px;padding:1rem;text-align:center;">
+    <p style="font-size:1.5rem;font-weight:800;color:#10B981;">
+      {{ ad_list|selectattr('is_active')|list|length if ad_list else 0 }}
+    </p>
+    <p style="font-size:0.7rem;color:var(--text-muted);font-weight:600;
+              text-transform:uppercase;letter-spacing:0.04em;">
+      Actives
     </p>
   </div>
 </div>
 
-<!-- Guide positions -->
-<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:12px;
-            padding:1rem;margin-bottom:1.25rem;">
-  <p style="font-size:0.75rem;font-weight:800;color:#1D4ED8;
-            text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.625rem;">
-    📌 Zones disponibles
+<!-- Guide zones -->
+<div style="background:#EFF6FF;border:1px solid #BFDBFE;
+            border-radius:12px;padding:0.875rem;margin-bottom:1.25rem;">
+  <p style="font-size:0.7rem;font-weight:800;color:#1D4ED8;
+            text-transform:uppercase;letter-spacing:0.05em;
+            margin-bottom:0.5rem;">
+    📌 Zones disponibles sur le site
   </p>
-  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0.5rem;">
-    {% for pos, desc in [
-      ('banner_top',       'Bandeau haut de page'),
-      ('hero',             'Section Hero accueil'),
-      ('between_sections', 'Entre les sections'),
-      ('sidebar',          'Barre latérale'),
-      ('banner_bottom',    'Bandeau bas de page'),
-    ] %}
-    <div style="background:#fff;border-radius:8px;padding:0.5rem 0.75rem;
-                border:1px solid #BFDBFE;">
-      <p style="font-size:0.65rem;font-weight:800;color:#1D4ED8;">{{ pos }}</p>
-      <p style="font-size:0.65rem;color:#6B7280;">{{ desc }}</p>
-    </div>
+  <div style="display:flex;flex-wrap:wrap;gap:0.375rem;">
+    {% for pos in ['banner_top','hero','between_sections','sidebar','banner_bottom'] %}
+    <span style="background:#fff;border:1px solid #BFDBFE;
+                 border-radius:6px;padding:0.2rem 0.625rem;
+                 font-size:0.65rem;font-weight:700;color:#1E40AF;">
+      {{ pos }}
+    </span>
     {% endfor %}
   </div>
 </div>
 
-<!-- Liste publicités -->
-{% if ads %}
-  <div style="display:flex;flex-direction:column;gap:0.875rem;">
-    {% for ad in ads %}
-    <div style="background:var(--bg-card);border:1.5px solid var(--border-card);
-                border-radius:16px;overflow:hidden;">
-      <div style="display:flex;align-items:stretch;min-height:100px;">
+<!-- Liste des publicités -->
+{% if ad_list %}
+<div style="display:flex;flex-direction:column;gap:0.875rem;">
+  {% for ad in ad_list %}
+  <div style="background:var(--bg-card);
+              border:1.5px solid {% if ad.is_active %}#D1FAE5{% else %}var(--border-card){% endif %};
+              border-radius:16px;overflow:hidden;
+              transition:all 0.2s ease;">
 
-        <!-- Aperçu image -->
-        <div style="width:120px;flex-shrink:0;background:var(--bg-section-alt);
-                    display:flex;align-items:center;justify-content:center;
-                    overflow:hidden;">
-          {% if ad.image_url %}
-          <img src="{{ ad.image_url }}" alt="{{ ad.title }}"
-               style="width:100%;height:100%;object-fit:cover;" />
-          {% else %}
-          <span style="font-size:2rem;opacity:0.3;">🖼️</span>
+    <div style="display:flex;align-items:stretch;min-height:90px;">
+
+      <!-- Aperçu image -->
+      <div style="width:100px;flex-shrink:0;
+                  background:var(--bg-section-alt);
+                  display:flex;align-items:center;
+                  justify-content:center;overflow:hidden;">
+        {% if ad.image_url %}
+        <img src="{{ ad.image_url }}"
+             alt="{{ ad.title }}"
+             style="width:100%;height:100%;object-fit:cover;display:block;" />
+        {% else %}
+        <span style="font-size:1.75rem;opacity:0.3;">🖼️</span>
+        {% endif %}
+      </div>
+
+      <!-- Contenu -->
+      <div style="flex:1;padding:0.875rem 1rem;
+                  min-width:0;display:flex;
+                  flex-direction:column;justify-content:space-between;">
+
+        <!-- Titre + badges -->
+        <div>
+          <div style="display:flex;align-items:center;
+                      gap:0.5rem;flex-wrap:wrap;margin-bottom:0.375rem;">
+            <h3 style="font-weight:700;font-size:0.875rem;
+                        color:var(--text-primary);margin:0;
+                        white-space:nowrap;overflow:hidden;
+                        text-overflow:ellipsis;max-width:200px;">
+              {{ ad.title }}
+            </h3>
+            <!-- Badge actif/inactif -->
+            <span style="flex-shrink:0;padding:0.2rem 0.625rem;
+                         border-radius:999px;font-size:0.65rem;
+                         font-weight:800;
+                         {% if ad.is_active %}
+                           background:#D1FAE5;color:#065F46;
+                         {% else %}
+                           background:#F3F4F6;color:#6B7280;
+                         {% endif %}">
+              {% if ad.is_active %}● Actif{% else %}○ Inactif{% endif %}
+            </span>
+          </div>
+
+          <!-- Position -->
+          <span style="display:inline-block;
+                       background:rgba(6,78,59,0.10);color:#064E3B;
+                       padding:0.2rem 0.625rem;border-radius:6px;
+                       font-size:0.65rem;font-weight:700;
+                       margin-bottom:0.375rem;">
+            📌 {{ ad.position }}
+          </span>
+
+          <!-- Lien si présent -->
+          {% if ad.link_url %}
+          <p style="font-size:0.7rem;color:#2563EB;
+                    white-space:nowrap;overflow:hidden;
+                    text-overflow:ellipsis;">
+            🔗 {{ ad.link_url[:45] }}{% if ad.link_url|length > 45 %}...{% endif %}
+          </p>
           {% endif %}
         </div>
+      </div>
 
-        <!-- Contenu -->
-        <div style="flex:1;padding:1rem;min-width:0;">
-          <div style="display:flex;align-items:flex-start;
-                      justify-content:space-between;gap:0.75rem;flex-wrap:wrap;">
-            <div style="flex:1;min-width:0;">
-              <div style="display:flex;align-items:center;gap:0.5rem;
-                          flex-wrap:wrap;margin-bottom:0.5rem;">
-                <h3 style="font-weight:700;font-size:0.9rem;
-                            color:var(--text-primary);margin:0;">
-                  {{ ad.title }}
-                </h3>
-                <span style="padding:0.2rem 0.625rem;border-radius:999px;
-                             font-size:0.65rem;font-weight:800;
-                             {% if ad.is_active %}
-                               background:#D1FAE5;color:#065F46;
-                             {% else %}
-                               background:#F3F4F6;color:#6B7280;
-                             {% endif %}">
-                  {% if ad.is_active %}● Actif{% else %}○ Inactif{% endif %}
-                </span>
-              </div>
-              <div style="display:flex;flex-wrap:wrap;gap:0.375rem;margin-bottom:0.5rem;">
-                <span style="background:rgba(6,78,59,0.10);color:#064E3B;
-                             padding:0.2rem 0.5rem;border-radius:6px;
-                             font-size:0.65rem;font-weight:700;">
-                  📌 {{ ad.position }}
-                </span>
-                {% if ad.link_url %}
-                <span style="background:#EFF6FF;color:#2563EB;
-                             padding:0.2rem 0.5rem;border-radius:6px;
-                             font-size:0.65rem;font-weight:600;
-                             overflow:hidden;text-overflow:ellipsis;
-                             white-space:nowrap;max-width:200px;">
-                  🔗 {{ ad.link_url[:35] }}{% if ad.link_url|length > 35 %}...{% endif %}
-                </span>
-                {% endif %}
-              </div>
-              {% if ad.content %}
-              <p style="font-size:0.75rem;color:var(--text-muted);
-                        overflow:hidden;text-overflow:ellipsis;
-                        white-space:nowrap;">
-                {{ ad.content[:80] }}{% if ad.content|length > 80 %}...{% endif %}
-              </p>
-              {% endif %}
-            </div>
+      <!-- Actions droite -->
+      <div style="display:flex;flex-direction:column;
+                  gap:0.375rem;padding:0.75rem;
+                  flex-shrink:0;justify-content:center;">
 
-            <!-- Actions -->
-            <div style="display:flex;flex-direction:column;gap:0.375rem;flex-shrink:0;">
-              <form method="POST"
-                    action="{{ url_for('admin.toggle_publicite', id=ad.id) }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                <button type="submit"
-                        style="display:block;width:100%;padding:0.4rem 0.75rem;
-                               border-radius:8px;font-size:0.7rem;font-weight:700;
-                               border:none;cursor:pointer;
-                               {% if ad.is_active %}
-                                 background:#FEF3C7;color:#D97706;
-                               {% else %}
-                                 background:#D1FAE5;color:#065F46;
-                               {% endif %}">
-                  {% if ad.is_active %}⏸ Désactiver{% else %}▶ Activer{% endif %}
-                </button>
-              </form>
-              <form method="POST"
-                    action="{{ url_for('admin.supprimer_publicite', id=ad.id) }}"
-                    onsubmit="return confirm('Supprimer cette publicité ?')">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                <button type="submit"
-                        style="display:block;width:100%;padding:0.4rem 0.75rem;
-                               border-radius:8px;font-size:0.7rem;font-weight:700;
-                               background:#FEE2E2;color:#DC2626;
-                               border:none;cursor:pointer;">
-                  🗑 Supprimer
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
+        <!-- Toggle actif/inactif -->
+        <form method="POST"
+              action="{{ url_for('admin.toggle_publicite', id=ad.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <button type="submit"
+                  style="display:block;width:100%;
+                         padding:0.375rem 0.625rem;
+                         border-radius:8px;font-size:0.65rem;
+                         font-weight:800;border:none;cursor:pointer;
+                         white-space:nowrap;
+                         {% if ad.is_active %}
+                           background:#FEF3C7;color:#D97706;
+                         {% else %}
+                           background:#D1FAE5;color:#065F46;
+                         {% endif %}">
+            {% if ad.is_active %}⏸ Off{% else %}▶ On{% endif %}
+          </button>
+        </form>
+
+        <!-- Supprimer -->
+        <form method="POST"
+              action="{{ url_for('admin.supprimer_publicite', id=ad.id) }}"
+              onsubmit="return confirm('Supprimer cette publicité définitivement ?')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <button type="submit"
+                  style="display:block;width:100%;
+                         padding:0.375rem 0.625rem;
+                         border-radius:8px;font-size:0.65rem;
+                         font-weight:800;border:none;cursor:pointer;
+                         background:#FEE2E2;color:#DC2626;">
+            🗑
+          </button>
+        </form>
       </div>
     </div>
-    {% endfor %}
   </div>
+  {% endfor %}
+</div>
 
 {% else %}
-<!-- Vide -->
+<!-- Aucune publicité -->
 <div style="background:var(--bg-card);border:2px dashed var(--border-color);
             border-radius:16px;padding:3rem;text-align:center;">
   <p style="font-size:3rem;margin-bottom:0.75rem;">📢</p>
@@ -166,7 +192,7 @@
     Aucune publicité
   </h3>
   <p style="font-size:0.875rem;color:var(--text-muted);margin-bottom:1.25rem;">
-    Créez votre première annonce ou publicité.
+    Créez votre première annonce ou publicité pour le site.
   </p>
   <a href="{{ url_for('admin.nouvelle_publicite') }}"
      style="display:inline-flex;align-items:center;gap:0.5rem;
