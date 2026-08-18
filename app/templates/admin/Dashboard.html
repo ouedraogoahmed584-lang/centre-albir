@@ -1,6 +1,7 @@
 {#
-  admin/dashboard.html — Tableau de bord administrateur
-  Utilise admin_base.html pour le layout responsive
+  admin/dashboard.html — Tableau de bord premium Centre Al-Bir
+  Cards statistiques dynamiques, actions rapides, inscriptions récentes
+  Design SaaS professionnel — responsive mobile/desktop
 #}
 {% extends "admin/admin_base.html" %}
 
@@ -10,13 +11,15 @@
 <a href="{{ url_for('admin.inscriptions') }}?status=pending"
    style="display:inline-flex;align-items:center;gap:0.375rem;
           padding:0.5rem 0.875rem;
-          background:linear-gradient(135deg,#C89B3C,#E8C472);
-          color:#022C22;border-radius:8px;font-size:0.75rem;
-          font-weight:800;text-decoration:none;white-space:nowrap;">
+          background:var(--gradient-gold);
+          color:#022C22;border-radius:8px;
+          font-size:0.75rem;font-weight:800;
+          text-decoration:none;white-space:nowrap;
+          box-shadow:0 2px 8px rgba(200,155,60,0.30);">
   📝 Inscriptions
   {% if stats.pending_applications > 0 %}
-  <span style="background:#EF4444;color:#fff;padding:0.1rem 0.4rem;
-               border-radius:999px;font-size:0.6rem;">
+  <span style="background:#EF4444;color:#fff;padding:0.1rem 0.425rem;
+               border-radius:999px;font-size:0.6rem;font-weight:800;">
     {{ stats.pending_applications }}
   </span>
   {% endif %}
@@ -25,139 +28,259 @@
 
 {% block admin_content %}
 
-<!-- ══ STATS CARDS ════════════════════════════════════ -->
+<!-- ══ BANNIÈRE INSCRIPTION EN COURS ══════════════ -->
+<div style="background:linear-gradient(135deg,rgba(6,78,59,0.12),rgba(200,155,60,0.08));
+            border:1.5px solid rgba(6,78,59,0.20);
+            border-radius:14px;padding:0.875rem 1rem;
+            margin-bottom:1.25rem;
+            display:flex;align-items:center;
+            gap:0.75rem;flex-wrap:wrap;">
+  <span style="font-size:1.375rem;">🟢</span>
+  <div style="flex:1;min-width:200px;">
+    <p style="font-weight:800;font-size:0.875rem;color:var(--text-heading);">
+      Inscriptions ouvertes — {{ site.school_year }}
+    </p>
+    <p style="font-size:0.7rem;color:var(--text-muted);margin-top:0.1rem;">
+      Du {{ site.enroll_start }} au {{ site.enroll_end }}
+    </p>
+  </div>
+  <a href="{{ url_for('admin.inscriptions') }}"
+     style="padding:0.5rem 1rem;background:var(--color-primary);
+            color:#fff;border-radius:8px;text-decoration:none;
+            font-size:0.75rem;font-weight:700;white-space:nowrap;
+            flex-shrink:0;">
+    Gérer →
+  </a>
+</div>
+
+<!-- ══ STATISTIQUES CARDS ═══════════════════════ -->
 <div style="display:grid;
             grid-template-columns:repeat(2,1fr);
-            gap:0.875rem;
-            margin-bottom:1.5rem;">
+            gap:0.75rem;margin-bottom:1.25rem;">
 
-  {% for icon, value, label, color, ep in [
-    ('📝', stats.pending_applications, 'En attente',    '#F59E0B', 'admin.inscriptions'),
-    ('👥', stats.total_students,       'Élèves actifs', '#10B981', 'admin.eleves'),
-    ('🎓', stats.total_teachers,       'Enseignants',   '#3B82F6', 'admin.enseignants'),
-    ('📰', stats.total_articles,       'Articles',      '#8B5CF6', 'admin.actualites'),
+  {% set stat_data = [
+    ('📝', stats.pending_applications, 'En attente',    'Nouvelles demandes',  '#F59E0B', '#FEF3C7', 'admin.inscriptions'),
+    ('👥', stats.total_students,       'Élèves actifs', 'Inscrits cette année','#10B981', '#D1FAE5', 'admin.eleves'),
+    ('🎓', stats.total_teachers,       'Enseignants',   'Corps pédagogique',   '#3B82F6', '#DBEAFE', 'admin.enseignants'),
+    ('📰', stats.total_articles,       'Articles',      'Publiés & brouillons','#8B5CF6', '#EDE9FE', 'admin.actualites'),
+    ('📢', stats.active_ads,           'Publicités',    'Annonces actives',    '#EC4899', '#FCE7F3', 'admin.publicites'),
+    ('📋', stats.total_applications,   'Dossiers total','Toutes les demandes', '#6B7280', '#F3F4F6', 'admin.inscriptions'),
   ] %}
+
+  {% for icon, value, label, sublabel, color, bg, ep in stat_data %}
   <a href="{{ url_for(ep) }}"
-     style="display:block;background:var(--bg-card);
+     style="background:var(--bg-card);
             border:1.5px solid var(--border-card);
-            border-radius:16px;padding:1.125rem;
+            border-radius:14px;padding:1rem;
             text-decoration:none;
-            transition:all 0.25s ease;
-            position:relative;overflow:hidden;"
-     onmouseover="this.style.borderColor='{{ color }}';this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.10)'"
-     onmouseout="this.style.borderColor='var(--border-card)';this.style.transform='translateY(0)';this.style.boxShadow='none'">
-    <div style="font-size:1.5rem;margin-bottom:0.625rem;">{{ icon }}</div>
-    <div style="font-family:'Playfair Display',serif;font-size:1.75rem;
-                font-weight:800;color:var(--text-heading);line-height:1;">
+            display:block;
+            position:relative;overflow:hidden;
+            transition:all 0.25s ease;"
+     onmouseover="this.style.borderColor='{{ color }}';
+                  this.style.transform='translateY(-2px)';
+                  this.style.boxShadow='0 8px 24px rgba(0,0,0,0.10)'"
+     onmouseout="this.style.borderColor='var(--border-card)';
+                 this.style.transform='translateY(0)';
+                 this.style.boxShadow='none'">
+
+    <!-- Barre couleur haut -->
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;
+                background:{{ color }};opacity:0.7;"></div>
+
+    <!-- Icône -->
+    <div style="width:38px;height:38px;border-radius:10px;
+                background:{{ bg }};
+                display:flex;align-items:center;justify-content:center;
+                font-size:1.125rem;margin-bottom:0.625rem;">
+      {{ icon }}
+    </div>
+
+    <!-- Valeur -->
+    <p style="font-family:var(--font-serif,'Playfair Display',serif);
+              font-size:1.625rem;font-weight:800;
+              color:var(--text-heading);line-height:1;
+              margin-bottom:0.2rem;">
       {{ value }}
-    </div>
-    <div style="font-size:0.7rem;color:var(--text-muted);
-                margin-top:0.25rem;font-weight:600;
-                text-transform:uppercase;letter-spacing:0.04em;">
+    </p>
+
+    <!-- Labels -->
+    <p style="font-size:0.7rem;font-weight:700;
+              color:var(--text-primary);margin-bottom:0.1rem;">
       {{ label }}
-    </div>
-    <div style="position:absolute;bottom:0;left:0;right:0;height:3px;
-                background:{{ color }};opacity:0.6;"></div>
+    </p>
+    <p style="font-size:0.65rem;color:var(--text-muted);">
+      {{ sublabel }}
+    </p>
   </a>
   {% endfor %}
 </div>
 
-<!-- ══ DERNIÈRES INSCRIPTIONS ════════════════════════ -->
-<div style="background:var(--bg-card);border:1.5px solid var(--border-card);
-            border-radius:16px;overflow:hidden;margin-bottom:1.25rem;">
+<!-- ══ GRILLE PRINCIPALE ════════════════════════ -->
+<div style="display:grid;grid-template-columns:1fr;gap:1rem;">
 
-  <div style="display:flex;align-items:center;justify-content:space-between;
-              padding:1rem 1.25rem;border-bottom:1px solid var(--border-card);">
-    <h2 style="font-family:'Playfair Display',serif;font-size:1rem;
-               font-weight:700;color:var(--text-heading);">
-      Dernières inscriptions
+  <!-- Dernières inscriptions -->
+  <div style="background:var(--bg-card);
+              border:1.5px solid var(--border-card);
+              border-radius:16px;overflow:hidden;">
+
+    <div style="display:flex;align-items:center;
+                justify-content:space-between;
+                padding:1rem 1.125rem;
+                border-bottom:1px solid var(--border-card);">
+      <h2 style="font-family:var(--font-serif,'Playfair Display',serif);
+                 font-size:0.9375rem;font-weight:700;
+                 color:var(--text-heading);">
+        📋 Dernières inscriptions
+      </h2>
+      <a href="{{ url_for('admin.inscriptions') }}"
+         style="font-size:0.7rem;font-weight:700;
+                color:var(--color-gold,#C89B3C);
+                text-decoration:none;white-space:nowrap;">
+        Voir tout →
+      </a>
+    </div>
+
+    {% if recent_applications %}
+      {% for app in recent_applications %}
+      <a href="{{ url_for('admin.inscription_detail', id=app.id) }}"
+         style="display:flex;align-items:center;gap:0.75rem;
+                padding:0.875rem 1.125rem;
+                border-bottom:1px solid var(--border-card);
+                text-decoration:none;transition:background 0.15s;"
+         onmouseover="this.style.background='var(--bg-section-alt)'"
+         onmouseout="this.style.background='transparent'">
+
+        <!-- Avatar -->
+        <div style="width:36px;height:36px;border-radius:10px;
+                    flex-shrink:0;display:flex;align-items:center;
+                    justify-content:center;font-weight:800;
+                    font-size:0.875rem;
+                    background:linear-gradient(135deg,rgba(6,78,59,0.15),rgba(200,155,60,0.15));
+                    color:var(--color-primary);">
+          {{ app.student_name[0].upper() if app.student_name else '?' }}
+        </div>
+
+        <!-- Infos -->
+        <div style="flex:1;min-width:0;">
+          <p style="font-weight:700;font-size:0.8125rem;
+                    color:var(--text-primary);
+                    white-space:nowrap;overflow:hidden;
+                    text-overflow:ellipsis;">
+            {{ app.student_name }}
+          </p>
+          <p style="font-size:0.68rem;color:var(--text-muted);margin-top:0.1rem;">
+            {{ app.parent_name }} · {{ app.submitted_at.strftime('%d/%m/%Y') }}
+          </p>
+        </div>
+
+        <!-- Statut -->
+        <span style="flex-shrink:0;padding:0.25rem 0.625rem;
+                     border-radius:999px;font-size:0.65rem;font-weight:800;
+                     {% if app.status == 'pending' %}background:#F3F4F6;color:#6B7280;
+                     {% elif app.status == 'accepted' %}background:#D1FAE5;color:#065F46;
+                     {% elif app.status == 'rejected' %}background:#FEE2E2;color:#DC2626;
+                     {% elif app.status == 'enrolled' %}background:#D1FAE5;color:#047857;
+                     {% else %}background:#FEF3C7;color:#D97706;{% endif %}">
+          {{ app.status_label }}
+        </span>
+      </a>
+      {% endfor %}
+
+      {% if not recent_applications %}
+      <div style="padding:2rem;text-align:center;color:var(--text-muted);">
+        <p style="font-size:1.75rem;margin-bottom:0.5rem;">📋</p>
+        <p style="font-size:0.875rem;">Aucune inscription reçue</p>
+      </div>
+      {% endif %}
+    {% else %}
+    <div style="padding:2rem;text-align:center;color:var(--text-muted);">
+      <p style="font-size:1.75rem;margin-bottom:0.5rem;">📋</p>
+      <p style="font-size:0.875rem;">Aucune inscription reçue</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Actions rapides -->
+  <div style="background:var(--bg-card);
+              border:1.5px solid var(--border-card);
+              border-radius:16px;padding:1.125rem;">
+
+    <h2 style="font-family:var(--font-serif,'Playfair Display',serif);
+               font-size:0.9375rem;font-weight:700;
+               color:var(--text-heading);margin-bottom:1rem;">
+      ⚡ Actions rapides
     </h2>
-    <a href="{{ url_for('admin.inscriptions') }}"
-       style="font-size:0.75rem;color:#C89B3C;font-weight:700;
-              text-decoration:none;">
-      Voir tout →
-    </a>
+
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0.5rem;">
+      {% for icon, label, ep, color in [
+        ('📢','Nouvelle pub',      'admin.nouvelle_publicite', '#EC4899'),
+        ('📰','Nouvel article',    'admin.nouvel_article',     '#8B5CF6'),
+        ('📚','Nouveau programme', 'admin.nouveau_programme',  '#3B82F6'),
+        ('🖼️','Ajouter photo',     'admin.galerie',            '#10B981'),
+        ('🔧','Configuration',     'admin.configuration',      '#F59E0B'),
+        ('👤','Utilisateurs',      'admin.utilisateurs',       '#6B7280'),
+      ] %}
+      <a href="{{ url_for(ep) }}"
+         style="display:flex;align-items:center;gap:0.5rem;
+                padding:0.75rem 0.875rem;border-radius:10px;
+                background:var(--bg-section-alt);
+                border:1.5px solid var(--border-color);
+                text-decoration:none;transition:all 0.2s;"
+         onmouseover="this.style.borderColor='{{ color }}';
+                      this.style.background='{{ color }}18';
+                      this.style.transform='scale(1.02)'"
+         onmouseout="this.style.borderColor='var(--border-color)';
+                     this.style.background='var(--bg-section-alt)';
+                     this.style.transform='scale(1)'">
+        <span style="font-size:1.125rem;">{{ icon }}</span>
+        <span style="font-size:0.75rem;font-weight:700;
+                     color:var(--text-primary);">
+          {{ label }}
+        </span>
+      </a>
+      {% endfor %}
+    </div>
   </div>
 
-  {% if recent_applications %}
-    {% for app in recent_applications %}
-    <a href="{{ url_for('admin.inscription_detail', id=app.id) }}"
-       style="display:flex;align-items:center;gap:0.875rem;
-              padding:0.875rem 1.25rem;text-decoration:none;
-              border-bottom:1px solid var(--border-card);
-              transition:background 0.15s;"
-       onmouseover="this.style.background='var(--bg-section-alt)'"
-       onmouseout="this.style.background='transparent'">
-      <!-- Avatar -->
-      <div style="width:38px;height:38px;border-radius:10px;
-                  background:linear-gradient(135deg,#064E3B22,#C89B3C22);
-                  display:flex;align-items:center;justify-content:center;
-                  font-weight:800;color:var(--color-primary);
-                  font-size:0.9rem;flex-shrink:0;">
-        {{ app.student_name[0].upper() if app.student_name else '?' }}
+  <!-- Infos centre -->
+  <div style="background:var(--gradient-hero);
+              border-radius:16px;padding:1.125rem;
+              position:relative;overflow:hidden;">
+    <div class="islamic-pattern"></div>
+    <div style="position:relative;z-index:1;">
+      <p style="color:var(--color-gold,#C89B3C);font-size:0.65rem;
+                font-weight:800;letter-spacing:0.08em;
+                text-transform:uppercase;margin-bottom:0.75rem;">
+        Centre Al-Bir
+      </p>
+      {% for label, value, highlight in [
+        ('Directeur',      site.director,    False),
+        ('Année scolaire', site.school_year, True),
+        ('Frais annuels',  site.fee,         False),
+        ('Élèves',         site.stats.students, False),
+      ] %}
+      <div style="display:flex;justify-content:space-between;
+                  align-items:center;padding:0.5rem 0;
+                  border-bottom:1px solid rgba(255,255,255,0.08);">
+        <span style="color:rgba(255,255,255,0.50);font-size:0.75rem;">
+          {{ label }}
+        </span>
+        <span style="font-weight:700;font-size:0.8125rem;
+                     color:{% if highlight %}var(--color-gold,#C89B3C){% else %}#fff{% endif %};">
+          {{ value }}
+        </span>
       </div>
-      <!-- Info -->
-      <div style="flex:1;min-width:0;">
-        <p style="font-weight:700;font-size:0.8125rem;
-                  color:var(--text-primary);
-                  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-          {{ app.student_name }}
-        </p>
-        <p style="font-size:0.7rem;color:var(--text-muted);margin-top:0.1rem;">
-          {{ app.parent_name }} · {{ app.submitted_at.strftime('%d/%m/%Y') }}
-        </p>
-      </div>
-      <!-- Badge statut -->
-      <span style="padding:0.25rem 0.625rem;border-radius:999px;
-                   font-size:0.65rem;font-weight:800;white-space:nowrap;flex-shrink:0;
-                   {% if app.status == 'pending' %}background:#F3F4F6;color:#6B7280;
-                   {% elif app.status == 'accepted' %}background:#D1FAE5;color:#065F46;
-                   {% elif app.status == 'rejected' %}background:#FEE2E2;color:#DC2626;
-                   {% elif app.status == 'enrolled' %}background:#D1FAE5;color:#047857;
-                   {% else %}background:#FEF3C7;color:#D97706;{% endif %}">
-        {{ app.status_label }}
-      </span>
-    </a>
-    {% endfor %}
-  {% else %}
-  <div style="padding:2rem;text-align:center;color:var(--text-muted);">
-    <p style="font-size:2rem;margin-bottom:0.5rem;">📋</p>
-    <p style="font-size:0.875rem;">Aucune inscription reçue</p>
+      {% endfor %}
+      <a href="{{ url_for('admin.configuration') }}"
+         style="display:block;text-align:center;margin-top:0.875rem;
+                padding:0.625rem;background:var(--gradient-gold);
+                color:#022C22;border-radius:10px;font-weight:800;
+                font-size:0.75rem;text-decoration:none;">
+        ⚙️ Gérer la configuration
+      </a>
+    </div>
   </div>
-  {% endif %}
-</div>
 
-<!-- ══ ACTIONS RAPIDES ════════════════════════════════ -->
-<div style="background:var(--bg-card);border:1.5px solid var(--border-card);
-            border-radius:16px;padding:1.25rem;">
-  <h2 style="font-family:'Playfair Display',serif;font-size:1rem;
-             font-weight:700;color:var(--text-heading);margin-bottom:1rem;">
-    Actions rapides
-  </h2>
-  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0.625rem;">
-    {% for icon, label, ep in [
-      ('📢','Nouvelle pub',      'admin.nouvelle_publicite'),
-      ('📰','Nouvel article',    'admin.nouvel_article'),
-      ('📚','Nouveau programme', 'admin.nouveau_programme'),
-      ('🖼️','Ajouter photo',     'admin.galerie'),
-      ('⚙️','Paramètres',        'admin.parametres'),
-      ('👤','Utilisateurs',      'admin.utilisateurs'),
-    ] %}
-    <a href="{{ url_for(ep) }}"
-       style="display:flex;align-items:center;gap:0.625rem;
-              padding:0.875rem;border-radius:12px;
-              background:var(--bg-section-alt);
-              border:1px solid var(--border-color);
-              text-decoration:none;
-              transition:all 0.2s;"
-       onmouseover="this.style.background='var(--color-primary)';this.style.borderColor='var(--color-primary)';Array.from(this.children).forEach(c=>c.style.color='#fff')"
-       onmouseout="this.style.background='var(--bg-section-alt)';this.style.borderColor='var(--border-color)';Array.from(this.children).forEach(c=>c.style.color='')">
-      <span style="font-size:1.25rem;">{{ icon }}</span>
-      <span style="font-size:0.75rem;font-weight:700;
-                   color:var(--text-primary);">{{ label }}</span>
-    </a>
-    {% endfor %}
-  </div>
 </div>
 
 {% endblock %}
