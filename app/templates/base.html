@@ -156,7 +156,7 @@
     </a>
 
     <!-- NAV DESKTOP — bonne classe -->
-    <div class="nav-desktop" style="gap:0.25rem;">
+    <div class="nav-desktop-links" style="gap:0.25rem;">
       {% set nav = [
         ('public.accueil',    'Accueil'),
         ('public.a_propos',   'À propos'),
@@ -179,7 +179,7 @@
 
       <!-- BOUTON S'INSCRIRE -->
       <a href="{{ url_for('public.admissions') }}"
-         class="nav-cta-btn"
+         class="nav-cta"
          style="align-items:center;gap:0.5rem;padding:0.5rem 1.25rem;
                 background:#C89B3C;color:#022C22;border-radius:10px;
                 font-weight:800;font-size:0.8125rem;text-decoration:none;
@@ -261,7 +261,7 @@
 
       <!-- BURGER MOBILE -->
       <button onclick="toggleMobile()"
-              class="nav-burger"
+              class="nav-burger-btn"
               style="padding:0.5rem;background:none;border:none;
                      cursor:pointer;color:#fff;align-items:center;
                      justify-content:center;">
