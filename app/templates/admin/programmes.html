@@ -1,0 +1,110 @@
+{#
+  admin/programmes.html — Gestion des programmes du Centre Al-Bir
+  Affiche tous les programmes avec options CRUD
+  Utilise admin_base.html — responsive mobile/desktop
+#}
+{% extends "admin/admin_base.html" %}
+
+{% block admin_title %}Programmes{% endblock %}
+
+{% block admin_actions %}
+<a href="{{ url_for('admin.nouveau_programme') }}"
+   style="display:inline-flex;align-items:center;gap:0.375rem;
+          padding:0.5rem 0.875rem;
+          background:linear-gradient(135deg,#C89B3C,#E8C472);
+          color:#022C22;border-radius:8px;font-size:0.75rem;
+          font-weight:800;text-decoration:none;">
+  + Nouveau programme
+</a>
+{% endblock %}
+
+{% block admin_content %}
+
+<!-- En-tête -->
+<div class="admin-page-header">
+  <div>
+    <p style="font-size:0.75rem;color:var(--text-muted);">
+      {{ programs|length if programs else 0 }} programme(s) au total
+    </p>
+  </div>
+</div>
+
+{% if programs %}
+
+<!-- Département Islamique -->
+{% set islamic = programs | selectattr('department', 'equalto', 'islamic') | list %}
+{% if islamic %}
+<div style="margin-bottom:1.5rem;">
+  <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.875rem;">
+    <div style="width:36px;height:36px;background:rgba(6,78,59,0.12);
+                border-radius:10px;display:flex;align-items:center;
+                justify-content:center;font-size:1.25rem;">🕌</div>
+    <div>
+      <h2 style="font-family:'Playfair Display',serif;font-size:1rem;
+                 font-weight:700;color:var(--text-heading);">
+        Département Islamique
+      </h2>
+      <p style="font-size:0.7rem;color:var(--text-muted);">
+        {{ islamic|length }} programme(s)
+      </p>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr;gap:0.75rem;">
+    {% for program in islamic %}
+    {% include 'admin/_program_card.html' %}
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Département Français -->
+{% set french = programs | selectattr('department', 'equalto', 'french') | list %}
+{% if french %}
+<div>
+  <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.875rem;">
+    <div style="width:36px;height:36px;background:rgba(37,99,235,0.12);
+                border-radius:10px;display:flex;align-items:center;
+                justify-content:center;font-size:1.25rem;">🇫🇷</div>
+    <div>
+      <h2 style="font-family:'Playfair Display',serif;font-size:1rem;
+                 font-weight:700;color:var(--text-heading);">
+        Département Français
+      </h2>
+      <p style="font-size:0.7rem;color:var(--text-muted);">
+        {{ french|length }} programme(s)
+      </p>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr;gap:0.75rem;">
+    {% for program in french %}
+    {% include 'admin/_program_card.html' %}
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% else %}
+<div style="background:var(--bg-card);border:2px dashed var(--border-color);
+            border-radius:16px;padding:3rem;text-align:center;">
+  <p style="font-size:3rem;margin-bottom:0.75rem;">📚</p>
+  <h3 style="font-family:'Playfair Display',serif;font-size:1.125rem;
+             font-weight:700;color:var(--text-heading);margin-bottom:0.5rem;">
+    Aucun programme
+  </h3>
+  <p style="font-size:0.875rem;color:var(--text-muted);margin-bottom:1.25rem;">
+    Créez les programmes d'enseignement du Centre Al-Bir.
+  </p>
+  <a href="{{ url_for('admin.nouveau_programme') }}"
+     style="display:inline-flex;align-items:center;gap:0.5rem;
+            padding:0.75rem 1.5rem;
+            background:linear-gradient(135deg,#064E3B,#047857);
+            color:#fff;border-radius:12px;font-weight:700;
+            font-size:0.875rem;text-decoration:none;">
+    + Créer un programme
+  </a>
+</div>
+{% endif %}
+
+{% endblock %}
