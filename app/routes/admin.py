@@ -18,6 +18,7 @@ from app.models.event import Event
 from app.models.teacher import Teacher
 from app.utils.decorators import admin_required
 from app.utils.helpers import slugify, allowed_file
+from app.utils.image_handler import save_upload, save_logo
 from werkzeug.utils import secure_filename
 import os
 from datetime import datetime, timezone
@@ -176,31 +177,38 @@ def publicites():
 @login_required
 @admin_required
 def nouvelle_publicite():
+    """Création d'une nouvelle publicité avec upload image"""
     if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        if not title:
+            flash('Le titre est obligatoire.', 'danger')
+            return redirect(url_for('admin.nouvelle_publicite'))
+
+        # Upload image publicité
         image_url = ''
         if 'image' in request.files:
             file = request.files['image']
-            if file and file.filename and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_')
-                filename  = timestamp + filename
-                save_path = os.path.join(current_app.root_path, 'static', 'images', 'ads', filename)
-                file.save(save_path)
-                image_url = f'/static/images/ads/{filename}'
+            if file and file.filename:
+                url = save_upload(file, folder_key='ads', prefix='pub')
+                if url:
+                    image_url = url
+                else:
+                    flash('Format image non supporté. Utilisez JPG, PNG, WebP.', 'warning')
 
         ad = Advertisement(
-            title      = request.form.get('title', '').strip(),
+            title      = title,
             image_url  = image_url,
             link_url   = request.form.get('link_url', '').strip(),
             content    = request.form.get('content', '').strip(),
             position   = request.form.get('position', 'banner_top'),
             is_active  = request.form.get('is_active') == 'on',
-            sort_order = int(request.form.get('sort_order', 0)),
+            sort_order = int(request.form.get('sort_order', 0) or 0),
         )
         db.session.add(ad)
         db.session.commit()
-        flash('Publicité créée avec succès !', 'success')
+        flash(f'Publicité "{title}" créée avec succès !', 'success')
         return redirect(url_for('admin.publicites'))
+
     return render_template('admin/publicite_form.html', ad=None)
 
 @admin_bp.route('/publicites/<int:id>/toggle', methods=['POST'])
@@ -236,37 +244,49 @@ def actualites():
 @login_required
 @admin_required
 def nouvel_article():
+    """Création d'un nouvel article avec image"""
     if request.method == 'POST':
         title_fr = request.form.get('title_fr', '').strip()
-        if title_fr:
-            image_url = ''
-            if 'image' in request.files:
-                file = request.files['image']
-                if file and file.filename and allowed_file(file.filename):
-                    filename  = secure_filename(file.filename)
-                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_')
-                    filename  = timestamp + filename
-                    save_path = os.path.join(current_app.root_path, 'static', 'images', 'uploads', filename)
-                    file.save(save_path)
-                    image_url = f'/static/images/uploads/{filename}'
+        if not title_fr:
+            flash('Le titre est obligatoire.', 'danger')
+            return redirect(url_for('admin.nouvel_article'))
 
-            article = Article(
-                title_fr     = title_fr,
-                title_ar     = request.form.get('title_ar', '').strip(),
-                content_fr   = request.form.get('content_fr', ''),
-                content_ar   = request.form.get('content_ar', ''),
-                excerpt_fr   = request.form.get('excerpt_fr', ''),
-                image_url    = image_url,
-                category     = request.form.get('category', 'annonce'),
-                is_pinned    = request.form.get('is_pinned') == 'on',
-                slug         = slugify(title_fr),
-            )
-            if request.form.get('publish_now') == 'on':
-                article.publish()
-            db.session.add(article)
-            db.session.commit()
-            flash('Article créé avec succès !', 'success')
-            return redirect(url_for('admin.actualites'))
+        # Upload image article
+        image_url = ''
+        if 'image' in request.files:
+            file = request.files['image']
+            if file and file.filename:
+                url = save_upload(file, folder_key='articles', prefix='article')
+                if url:
+                    image_url = url
+
+        from app.utils.helpers import slugify
+        base_slug = slugify(title_fr)
+        final_slug = base_slug
+        counter = 1
+        while Article.query.filter_by(slug=final_slug).first():
+            final_slug = f"{base_slug}-{counter}"
+            counter += 1
+
+        article = Article(
+            title_fr     = title_fr,
+            title_ar     = request.form.get('title_ar', '').strip(),
+            content_fr   = request.form.get('content_fr', ''),
+            content_ar   = request.form.get('content_ar', ''),
+            excerpt_fr   = request.form.get('excerpt_fr', '').strip(),
+            image_url    = image_url,
+            category     = request.form.get('category', 'annonce'),
+            is_pinned    = request.form.get('is_pinned') == 'on',
+            slug         = final_slug,
+        )
+        if request.form.get('publish_now') == 'on':
+            article.publish()
+
+        db.session.add(article)
+        db.session.commit()
+        flash('Article créé avec succès !', 'success')
+        return redirect(url_for('admin.actualites'))
+
     return render_template('admin/article_form.html', article=None)
 
 @admin_bp.route('/actualites/<int:id>/toggle', methods=['POST'])
@@ -308,9 +328,33 @@ def galerie():
 @login_required
 @admin_required
 def ajouter_photo():
+    """Ajoute une photo à la galerie"""
     if 'photo' not in request.files:
         flash('Aucun fichier sélectionné.', 'danger')
         return redirect(url_for('admin.galerie'))
+
+    file = request.files['photo']
+    if not file or not file.filename:
+        flash('Fichier invalide.', 'danger')
+        return redirect(url_for('admin.galerie'))
+
+    url = save_upload(file, folder_key='gallery', prefix='galerie')
+    if not url:
+        flash('Format non supporté. Utilisez JPG, PNG, WebP.', 'danger')
+        return redirect(url_for('admin.galerie'))
+
+    photo = Gallery(
+        image_url  = url,
+        caption_fr = request.form.get('caption_fr', '').strip(),
+        caption_ar = request.form.get('caption_ar', '').strip(),
+        category   = request.form.get('category', 'activite'),
+        sort_order = int(request.form.get('sort_order', 0) or 0),
+        is_active  = True,
+    )
+    db.session.add(photo)
+    db.session.commit()
+    flash('Photo ajoutée avec succès !', 'success')
+    return redirect(url_for('admin.galerie'))
     file = request.files['photo']
     if file and allowed_file(file.filename):
         filename  = secure_filename(file.filename)
@@ -346,15 +390,21 @@ def supprimer_photo(id):
 @login_required
 @admin_required
 def parametres():
+    """Paramètres du site — upload logo"""
     if request.method == 'POST':
+        # Upload logo
         if 'logo' in request.files:
             file = request.files['logo']
-            if file and file.filename and allowed_file(file.filename):
-                filename  = secure_filename('logo.' + file.filename.rsplit('.', 1)[1].lower())
-                save_path = os.path.join(current_app.root_path, 'static', 'images', filename)
-                file.save(save_path)
-                flash('Logo mis à jour avec succès !', 'success')
+            if file and file.filename:
+                url = save_logo(file)
+                if url:
+                    flash('Logo mis à jour avec succès ! Actualisez la page pour le voir.', 'success')
+                else:
+                    flash('Erreur upload logo. Utilisez JPG, PNG, SVG (max 32MB).', 'danger')
+            else:
+                flash('Aucun fichier sélectionné.', 'warning')
         return redirect(url_for('admin.parametres'))
+
     return render_template('admin/parametres.html')
 
 # ── GESTION DES UTILISATEURS ────────────────────────────────

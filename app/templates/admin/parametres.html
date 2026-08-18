@@ -1,5 +1,7 @@
-﻿{#
-  parametres.html — Migré vers admin_base.html responsive
+{#
+  admin/parametres.html — Paramètres du site
+  Upload logo avec enctype="multipart/form-data" obligatoire
+  Le logo est copié dans /static/images/logo.png
 #}
 {% extends "admin/admin_base.html" %}
 
@@ -7,126 +9,181 @@
 
 {% block admin_content %}
 
-    <!-- Burger admin mobile -->
-    <div class="admin-burger" onclick="toggleAdminSidebar()">
-      <svg width="20" height="20" fill="none" stroke="white"
-           stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round"
-              d="M4 6h16M4 12h16M4 18h16"/>
-      </svg>
-    </div>
+<!-- Upload Logo -->
+<div style="background:var(--bg-card);border:1.5px solid var(--border-card);
+            border-radius:16px;padding:1.5rem;margin-bottom:1.25rem;">
 
-    <div class="mb-8">
-      <h1 class="text-2xl font-bold font-serif text-gray-900">Paramètres du site</h1>
-      <p class="text-gray-500 text-sm mt-1">Configurez l'apparence et les informations du Centre Al-Bir</p>
-    </div>
+  <h2 style="font-family:'Playfair Display',serif;font-size:1.125rem;
+             font-weight:700;color:var(--text-heading);margin-bottom:1.25rem;
+             display:flex;align-items:center;gap:0.625rem;">
+    🖼️ Logo du site
+  </h2>
 
-    <div class="space-y-6">
-
-      <!-- LOGO -->
-      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-        <h2 class="font-bold text-gray-800 font-serif text-lg mb-5 flex items-center gap-2">
-          <span class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">🖼️</span>
-          Logo du site
-        </h2>
-
-        <!-- Aperçu logo actuel -->
-        <div class="flex items-center gap-6 mb-6 p-5 bg-primary-950 rounded-2xl">
-          <div class="w-20 h-20 rounded-2xl overflow-hidden border-2 border-yellow-400/50 flex-shrink-0">
-            <img src="{{ url_for('static', filename='images/logo.png') }}"
-                 onerror="this.parentElement.innerHTML='<div class=\'w-full h-full bg-yellow-400 flex items-center justify-center font-bold text-green-900 text-xl\'>AB</div>'"
-                 alt="Logo actuel" class="w-full h-full object-cover" />
-          </div>
-          <div>
-            <p class="text-white font-bold">Logo actuel</p>
-            <p class="text-white/50 text-sm">Centre Al-Bir</p>
-            <p class="text-yellow-400 text-xs mt-1 font-arabic">مركز البر</p>
-          </div>
-        </div>
-
-        <!-- Formulaire upload logo -->
-        <form method="POST" enctype="multipart/form-data"
-              action="{{ url_for('admin.parametres') }}">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-          <div class="border-2 border-dashed border-gray-200 rounded-2xl p-6 text-center hover:border-primary-400 transition-colors mb-4"
-               onclick="document.getElementById('logo-upload').click()">
-            <input type="file" name="logo" id="logo-upload" accept="image/*"
-                   class="hidden" onchange="previewLogo(this)" />
-            <div id="logo-preview" class="hidden mb-3">
-              <img id="logo-preview-img" src="#" alt="Nouveau logo"
-                   class="w-20 h-20 mx-auto rounded-2xl object-cover shadow-md" />
-            </div>
-            <p class="text-4xl mb-2" id="logo-icon">🖼️</p>
-            <p class="text-gray-600 font-medium text-sm">Cliquer pour choisir un nouveau logo</p>
-            <p class="text-gray-400 text-xs mt-1">PNG, JPG, SVG — Format carré recommandé (512×512px)</p>
-          </div>
-          <button type="submit"
-                  class="w-full py-3 bg-primary-900 hover:bg-primary-800 text-white font-bold rounded-xl transition-all hover:scale-105 text-sm shadow-lg">
-            📤 Mettre à jour le logo
-          </button>
-        </form>
+  <!-- Logo actuel -->
+  <div style="background:var(--bg-sidebar,#0A2A1F);border-radius:14px;
+              padding:1.25rem;display:flex;align-items:center;
+              gap:1rem;margin-bottom:1.25rem;">
+    <div style="width:64px;height:64px;border-radius:14px;overflow:hidden;
+                border:2px solid rgba(200,155,60,0.4);flex-shrink:0;
+                background:rgba(200,155,60,0.1);
+                display:flex;align-items:center;justify-content:center;">
+      <img src="/static/images/logo.png?v={{ range(1,9999)|random }}"
+           alt="Logo actuel"
+           id="current-logo"
+           onerror="this.style.display='none';document.getElementById('logo-placeholder').style.display='flex'"
+           style="width:100%;height:100%;object-fit:cover;" />
+      <div id="logo-placeholder"
+           style="display:none;width:100%;height:100%;
+                  align-items:center;justify-content:center;
+                  color:#C89B3C;font-weight:900;font-size:1.125rem;">
+        AB
       </div>
+    </div>
+    <div>
+      <p style="color:#fff;font-weight:700;font-size:0.875rem;">
+        Logo actuel
+      </p>
+      <p style="color:rgba(255,255,255,0.5);font-size:0.75rem;margin-top:0.2rem;">
+        Centre Al-Bir — مركز البر
+      </p>
+    </div>
+  </div>
 
-      <!-- INFOS CENTRE (lecture seule) -->
-      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-        <h2 class="font-bold text-gray-800 font-serif text-lg mb-5 flex items-center gap-2">
-          <span class="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center">ℹ️</span>
-          Informations du centre
-          <span class="text-xs text-gray-400 font-normal ml-2">(modifiables dans config.py)</span>
-        </h2>
-        <div class="grid md:grid-cols-2 gap-4">
-          {% for label, value in [
-            ('Nom du centre',    site.full_name),
-            ('Directeur',        site.director),
-            ('Téléphone 1',      site.phone1),
-            ('Téléphone 2',      site.phone2),
-            ('Email',            site.email),
-            ('Adresse',          site.address),
-            ('Horaires',         site.hours),
-            ('Année scolaire',   site.school_year),
-            ('Frais annuels',    site.fee),
-            ('Tranches d\'âge',  site.age_range),
-          ] %}
-          <div class="bg-gray-50 rounded-xl p-4">
-            <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1">{{ label }}</p>
-            <p class="text-gray-800 text-sm font-medium">{{ value }}</p>
-          </div>
-          {% endfor %}
-        </div>
-        <div class="mt-4 p-4 bg-yellow-50 rounded-xl border border-yellow-200">
-          <p class="text-yellow-700 text-xs font-semibold">
-            ⚠️ Pour modifier ces informations, éditez le fichier <code class="bg-yellow-200 px-1.5 py-0.5 rounded font-mono">app/utils/helpers.py</code>
-            puis relancez le serveur.
-          </p>
-        </div>
-      </div>
+  <!-- Formulaire upload -->
+  <form method="POST"
+        action="{{ url_for('admin.parametres') }}"
+        enctype="multipart/form-data"
+        id="logo-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
-      <!-- STATISTIQUES SYSTÈME -->
-      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-        <h2 class="font-bold text-gray-800 font-serif text-lg mb-5 flex items-center gap-2">
-          <span class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">📊</span>
-          Statistiques affichées sur le site
-        </h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {% for label, value, icon in [
-            ('Élèves', site.stats.students,     '👥'),
-            ('Enseignants', site.stats.teachers, '🎓'),
-            ('Taux réussite', site.stats.success_rate, '📈'),
-            ("D'expérience", '3 ans',            '⭐'),
-          ] %}
-          <div class="bg-primary-50 rounded-xl p-4 text-center border border-primary-100">
-            <p class="text-2xl mb-1">{{ icon }}</p>
-            <p class="text-xl font-bold text-primary-900">{{ value }}</p>
-            <p class="text-xs text-gray-500 mt-1">{{ label }}</p>
-          </div>
-          {% endfor %}
-        </div>
-        <p class="text-xs text-gray-400 mt-4">
-          Ces chiffres sont affichés sur la page d'accueil du site.
-          Modifiez-les dans <code class="bg-gray-100 px-1.5 py-0.5 rounded font-mono">app/utils/helpers.py</code>.
+    <!-- Zone drag & drop -->
+    <div id="logo-dropzone"
+         onclick="document.getElementById('logo-file').click()"
+         style="border:2px dashed var(--border-color);border-radius:14px;
+                padding:2rem;text-align:center;cursor:pointer;
+                background:var(--bg-section-alt);
+                transition:all 0.2s ease;"
+         ondragover="event.preventDefault();this.style.borderColor='#C89B3C';this.style.background='rgba(200,155,60,0.05)'"
+         ondragleave="this.style.borderColor='var(--border-color)';this.style.background='var(--bg-section-alt)'"
+         ondrop="handleLogoDrop(event)">
+
+      <input type="file"
+             name="logo"
+             id="logo-file"
+             accept="image/png,image/jpeg,image/jpg,image/svg+xml,image/webp,image/gif"
+             style="display:none;"
+             onchange="previewLogo(this)" />
+
+      <div id="logo-preview-zone">
+        <p style="font-size:2.5rem;margin-bottom:0.75rem;">📁</p>
+        <p style="font-weight:700;color:var(--text-primary);font-size:0.9rem;margin-bottom:0.375rem;">
+          Cliquez ou glissez votre logo ici
+        </p>
+        <p style="font-size:0.75rem;color:var(--text-muted);">
+          PNG, JPG, SVG, WebP — Maximum 32 MB
+        </p>
+        <p style="font-size:0.7rem;color:var(--text-muted);margin-top:0.25rem;">
+          Taille recommandée : 512×512 px (carré)
         </p>
       </div>
-
     </div>
-  
+
+    <!-- Bouton submit -->
+    <button type="submit"
+            id="logo-submit"
+            style="margin-top:1rem;width:100%;padding:0.875rem;
+                   background:linear-gradient(135deg,#064E3B,#047857);
+                   color:#fff;border:none;border-radius:12px;
+                   font-weight:800;font-size:0.9rem;cursor:pointer;
+                   transition:all 0.2s;display:flex;
+                   align-items:center;justify-content:center;gap:0.5rem;"
+            onmouseover="this.style.transform='scale(1.02)'"
+            onmouseout="this.style.transform='scale(1)'">
+      📤 Mettre à jour le logo
+    </button>
+  </form>
+</div>
+
+<!-- Infos centre (lecture seule) -->
+<div style="background:var(--bg-card);border:1.5px solid var(--border-card);
+            border-radius:16px;padding:1.5rem;">
+
+  <h2 style="font-family:'Playfair Display',serif;font-size:1.125rem;
+             font-weight:700;color:var(--text-heading);margin-bottom:1rem;
+             display:flex;align-items:center;gap:0.625rem;">
+    ℹ️ Informations du centre
+    <span style="font-size:0.65rem;font-weight:400;color:var(--text-muted);">
+      (modifiables dans helpers.py)
+    </span>
+  </h2>
+
+  <div style="display:grid;grid-template-columns:1fr;gap:0.75rem;">
+    {% for label, value in [
+      ('Nom complet',     site.full_name),
+      ('Directeur',       site.director),
+      ('Téléphone 1',     site.phone1),
+      ('Téléphone 2',     site.phone2),
+      ('Email',           site.email),
+      ('Adresse',         site.address),
+      ('Horaires',        site.hours),
+      ('Année scolaire',  site.school_year),
+      ('Frais annuels',   site.fee),
+    ] %}
+    <div style="display:flex;align-items:flex-start;gap:0.75rem;
+                padding:0.75rem;background:var(--bg-section-alt);
+                border-radius:10px;">
+      <span style="font-size:0.7rem;font-weight:800;color:var(--text-muted);
+                   text-transform:uppercase;letter-spacing:0.04em;
+                   min-width:100px;flex-shrink:0;padding-top:0.1rem;">
+        {{ label }}
+      </span>
+      <span style="font-size:0.8125rem;color:var(--text-primary);font-weight:600;">
+        {{ value }}
+      </span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}
+
+{% block admin_scripts %}
+<script>
+function previewLogo(input) {
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+  if (file.size > 32 * 1024 * 1024) {
+    alert('Fichier trop grand. Maximum 32 MB.');
+    input.value = '';
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('logo-preview-zone').innerHTML =
+      '<img src="' + e.target.result + '" style="max-height:120px;max-width:200px;' +
+      'border-radius:12px;border:2px solid #C89B3C;object-fit:contain;"/>' +
+      '<p style="font-size:0.75rem;color:#10B981;font-weight:700;margin-top:0.75rem;">' +
+      '✅ ' + file.name + ' (' + (file.size/1024/1024).toFixed(1) + ' MB)</p>' +
+      '<p style="font-size:0.7rem;color:var(--text-muted);">Cliquez sur le bouton pour confirmer</p>';
+  };
+  reader.readAsDataURL(file);
+  document.getElementById('logo-dropzone').style.borderColor = '#C89B3C';
+}
+
+function handleLogoDrop(event) {
+  event.preventDefault();
+  var file = event.dataTransfer.files[0];
+  if (!file) return;
+  document.getElementById('logo-file').files = event.dataTransfer.files;
+  previewLogo(document.getElementById('logo-file'));
+}
+
+// Feedback soumission
+document.getElementById('logo-form').addEventListener('submit', function() {
+  var btn = document.getElementById('logo-submit');
+  btn.textContent = '⏳ Envoi en cours...';
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+});
+</script>
 {% endblock %}
