@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    FICHIER #53 — static/css/custom.css
    Système CSS Premium complet du Centre Al-Bir. Définit 5
    thèmes visuels (Classique, Sombre, Or, Émeraude, Minuit)
@@ -1689,32 +1689,7 @@ img, video { max-width: 100%; height: auto; }
    Empêche l'affichage désordonné avant que JS soit prêt
    ============================================================ */
 
-/* Cacher les boutons flottants jusqu'à ce que la page soit prête */
-.float-btn,
-#float-espace,
-#theme-panel {
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.4s ease 0.5s, visibility 0.4s ease 0.5s;
-}
 
-/* Révéler quand la page est prête (classe ajoutée par JS) */
-body.page-ready .float-btn,
-body.page-ready #float-espace,
-body.page-ready #theme-panel {
-  opacity: 1;
-  visibility: visible;
-}
-
-/* Scroll top garde son état invisible si pas scrollé */
-body.page-ready .float-btn-scroll {
-  opacity: 0;
-  visibility: hidden;
-}
-body.page-ready .float-btn-scroll.visible {
-  opacity: 1;
-  visibility: visible;
-}
 
 /* Loader couvre TOUT pendant le chargement */
 #page-loader {

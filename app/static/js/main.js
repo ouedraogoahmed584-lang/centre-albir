@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 // FICHIER #58 — static/js/main.js (VERSION COMPLÈTE)
 // JavaScript global du Centre Al-Bir. Gère le système de thèmes
 // multi-couleurs avec persistance localStorage, les boutons
@@ -429,47 +429,7 @@ window.addEventListener('resize', function() {
   }
 }, { passive: true });
 
-/* ============================================================
-   FIX FOUC — Spacer dynamique + page-ready
-   Calcule la vraie hauteur navbar+bannière
-   Révèle les éléments seulement quand tout est prêt
-   ============================================================ */
 
-function fixNavSpacer() {
-  var spacer  = document.getElementById('nav-spacer');
-  var navbar  = document.getElementById('navbar');
-  if (!spacer || !navbar) return;
-
-  // Calculer hauteur réelle de la navbar (navbar + bannière intégrée)
-  var navH = navbar.offsetHeight;
-  spacer.style.height = navH + 'px';
-}
-
-function markPageReady() {
-  // Révèle tous les éléments cachés anti-FOUC
-  document.body.classList.add('page-ready');
-
-  // Corriger le spacer
-  fixNavSpacer();
-
-  // Cacher le loader
-  var loader = document.getElementById('page-loader');
-  if (loader) {
-    loader.classList.add('hidden');
-  }
-}
-
-// Lancer quand DOM + images chargés
-window.addEventListener('load', function() {
-  // Petit délai pour que Tailwind CDN applique ses styles
-  setTimeout(markPageReady, 300);
-});
-
-// Fallback de sécurité
-setTimeout(markPageReady, 2500);
-
-// Recalculer spacer si resize
-window.addEventListener('resize', fixNavSpacer, { passive: true });
 
 // Recalculer spacer si bannière fermée
 document.addEventListener('click', function(e) {
@@ -478,3 +438,37 @@ document.addEventListener('click', function(e) {
     setTimeout(fixNavSpacer, 50);
   }
 });
+
+/* ============================================================
+   LOADER SIMPLE — Masque pendant chargement Tailwind CDN
+   Se cache quand window.load est déclenché (Tailwind inclus)
+   ============================================================ */
+(function() {
+  var loader = document.getElementById('page-loader');
+  if (!loader) return;
+
+  // window.load attend QUE Tailwind CDN soit chargé
+  // C'est exactement ce qu'on veut
+  window.addEventListener('load', function() {
+    loader.classList.add('hidden');
+  });
+
+  // Scroll top button
+  var scrollBtn = document.getElementById('btn-scroll-top');
+  if (scrollBtn) {
+    window.addEventListener('scroll', function() {
+      scrollBtn.classList.toggle('visible', window.scrollY > 400);
+    }, { passive: true });
+  }
+
+  // Admin sidebar
+  window.addEventListener('resize', function() {
+    if (window.innerWidth >= 1024) {
+      var s = document.querySelector('.admin-sidebar');
+      var o = document.getElementById('admin-overlay');
+      if (s) s.classList.remove('mobile-open');
+      if (o) o.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  }, { passive: true });
+})();
