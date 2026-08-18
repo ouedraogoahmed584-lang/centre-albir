@@ -1,15 +1,12 @@
-{% extends "base.html" %}
-{% block title %}Paiements — Admin Al-Bir{% endblock %}
-{% block content %}
-{#
-  FICHIER #33b — admin/paiements.html
-  Suivi et gestion des paiements des frais scolaires (250 000 FCFA).
-  L'administrateur peut enregistrer un paiement, consulter
-  l'historique et vérifier les soldes par élève.
-  Les reçus peuvent être générés depuis cette interface.
+﻿{#
+  paiements.html — Migré vers admin_base.html responsive
 #}
-<div class="min-h-screen bg-gray-50 pt-20 flex">
-  <main class="flex-1 p-8 ml-64">
+{% extends "admin/admin_base.html" %}
+
+{% block admin_title %}Paiements{% endblock %}
+
+{% block admin_content %}
+
     <!-- Burger admin mobile -->
     <div class="admin-burger" onclick="toggleAdminSidebar()">
       <svg width="20" height="20" fill="none" stroke="white"
@@ -23,6 +20,5 @@
       <p class="text-5xl mb-4">💰</p>
       <p class="text-gray-500">Module paiements — en cours de développement</p>
     </div>
-  </main>
-</div>
+  
 {% endblock %}

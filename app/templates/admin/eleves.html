@@ -1,48 +1,12 @@
-{#
-  ============================================================
-  FICHIER #45 — admin/eleves.html
-  Interface de gestion de la liste complète des élèves inscrits
-  au Centre Al-Bir. Affiche les informations de chaque élève
-  (nom, programme, date d'inscription, statut), avec une barre
-  de recherche en temps réel. Accessible uniquement aux admins.
-  Lien vers la fiche détaillée de chaque élève.
-  ============================================================
+﻿{#
+  eleves.html — Migré vers admin_base.html responsive
 #}
-{% extends "base.html" %}
-{% block title %}Gestion des Élèves — Admin Al-Bir{% endblock %}
+{% extends "admin/admin_base.html" %}
 
-{% block content %}
-<div class="min-h-screen bg-gray-50 pt-16 flex">
+{% block admin_title %}Gestion des Élèves{% endblock %}
 
-  <aside class="fixed left-0 top-16 h-screen w-64 bg-primary-950 text-white z-40
-                overflow-y-auto shadow-2xl">
-    <div class="p-6 border-b border-white/10">
-      <p class="text-white font-bold text-sm">{{ current_user.full_name }}</p>
-      <p class="text-yellow-400 text-xs">Administrateur</p>
-    </div>
-    <nav class="p-4 space-y-1">
-      {% for ep, icon, label in [
-        ('admin.dashboard',   '📊','Tableau de bord'),
-        ('admin.inscriptions','📝','Inscriptions'),
-        ('admin.eleves',      '👥','Élèves'),
-        ('admin.enseignants', '🎓','Enseignants'),
-        ('admin.programmes',  '📚','Programmes'),
-        ('admin.actualites',  '📰','Actualités'),
-        ('admin.galerie',     '🖼️','Galerie'),
-        ('admin.publicites',  '📢','Publicités'),
-        ('admin.parametres',  '⚙️','Paramètres'),
-      ] %}
-      <a href="{{ url_for(ep) }}"
-         class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
-                {% if request.endpoint == ep %}bg-yellow-400 text-primary-900 font-bold
-                {% else %}text-white/70 hover:bg-white/10 hover:text-white{% endif %}">
-        <span>{{ icon }}</span> {{ label }}
-      </a>
-      {% endfor %}
-    </nav>
-  </aside>
+{% block admin_content %}
 
-  <main class="ml-64 flex-1 p-8">
     <!-- Burger admin mobile -->
     <div class="admin-burger" onclick="toggleAdminSidebar()">
       <svg width="20" height="20" fill="none" stroke="white"
@@ -177,19 +141,5 @@
       </div>
       {% endif %}
     </div>
-  </main>
-</div>
-{% endblock %}
-
-{% block scripts_extra %}
-<script>
-// Recherche en temps réel dans le tableau élèves
-function filterEleves(query) {
-  const q = query.toLowerCase().trim();
-  document.querySelectorAll('.eleve-row').forEach(row => {
-    const name = row.dataset.name || '';
-    row.style.display = (!q || name.includes(q)) ? '' : 'none';
-  });
-}
-</script>
+  
 {% endblock %}

@@ -1,15 +1,12 @@
-{% extends "base.html" %}
-{% block title %}Événements — Admin Al-Bir{% endblock %}
-{% block content %}
-{#
-  FICHIER #33a — admin/evenements.html
-  Gestion du calendrier des événements du Centre Al-Bir.
-  Permet à l'administrateur de créer et gérer les examens,
-  cérémonies, réunions parents et périodes d'inscription.
-  Les événements publics sont visibles sur le site public.
+﻿{#
+  evenements.html — Migré vers admin_base.html responsive
 #}
-<div class="min-h-screen bg-gray-50 pt-20 flex">
-  <main class="flex-1 p-8 ml-64">
+{% extends "admin/admin_base.html" %}
+
+{% block admin_title %}Événements{% endblock %}
+
+{% block admin_content %}
+
     <!-- Burger admin mobile -->
     <div class="admin-burger" onclick="toggleAdminSidebar()">
       <svg width="20" height="20" fill="none" stroke="white"
@@ -23,6 +20,5 @@
       <p class="text-5xl mb-4">📅</p>
       <p class="text-gray-500">Module événements — en cours de développement</p>
     </div>
-  </main>
-</div>
+  
 {% endblock %}

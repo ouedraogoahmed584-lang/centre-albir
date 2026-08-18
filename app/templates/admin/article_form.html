@@ -1,58 +1,12 @@
-{#
-  ============================================================
-  FICHIER #43 — admin/article_form.html
-  Formulaire de création et d'édition d'un article ou annonce
-  pour le site public du Centre Al-Bir. Permet à l'administrateur
-  de rédiger un contenu bilingue (français + arabe), d'uploader
-  une image de couverture, de choisir la catégorie, d'épingler
-  l'article et de le publier immédiatement ou en brouillon.
-  ============================================================
+﻿{#
+  article_form.html — Migré vers admin_base.html responsive
 #}
-{% extends "base.html" %}
-{% block title %}
-  {% if article %}Modifier l'article{% else %}Nouvel article{% endif %} — Admin Al-Bir
-{% endblock %}
+{% extends "admin/admin_base.html" %}
 
-{% block content %}
-<div class="min-h-screen bg-gray-50 pt-16 flex">
+{% block admin_title %}Administration{% endblock %}
 
-  <!-- Sidebar -->
-  <aside class="fixed left-0 top-16 h-screen w-64 bg-primary-950 text-white z-40
-                overflow-y-auto shadow-2xl">
-    <div class="p-6 border-b border-white/10">
-      <p class="text-white font-bold text-sm">{{ current_user.full_name }}</p>
-      <p class="text-yellow-400 text-xs">Administrateur</p>
-    </div>
-    <nav class="p-4 space-y-1">
-      {% for ep, icon, label in [
-        ('admin.dashboard',   '📊','Tableau de bord'),
-        ('admin.inscriptions','📝','Inscriptions'),
-        ('admin.eleves',      '👥','Élèves'),
-        ('admin.programmes',  '📚','Programmes'),
-        ('admin.actualites',  '📰','Actualités'),
-        ('admin.galerie',     '🖼️','Galerie'),
-        ('admin.publicites',  '📢','Publicités'),
-        ('admin.parametres',  '⚙️','Paramètres'),
-      ] %}
-      <a href="{{ url_for(ep) }}"
-         class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
-                {% if request.endpoint == ep %}bg-yellow-400 text-primary-900 font-bold
-                {% else %}text-white/70 hover:bg-white/10 hover:text-white{% endif %}">
-        <span>{{ icon }}</span> {{ label }}
-      </a>
-      {% endfor %}
-      <div class="border-t border-white/10 pt-3 mt-3">
-        <a href="{{ url_for('auth.deconnexion') }}"
-           class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm
-                  text-red-400 hover:bg-red-500/20 transition-all">
-          🚪 Déconnexion
-        </a>
-      </div>
-    </nav>
-  </aside>
+{% block admin_content %}
 
-  <!-- Contenu principal -->
-  <main class="ml-64 flex-1 p-8">
     <!-- Burger admin mobile -->
     <div class="admin-burger" onclick="toggleAdminSidebar()">
       <svg width="20" height="20" fill="none" stroke="white"
@@ -293,45 +247,5 @@
 
       </div>
     </form>
-  </main>
-</div>
-{% endblock %}
-
-{% block scripts_extra %}
-<script>
-// ══════════════════════════════════════════════════════
-// ÉDITEUR ARTICLE — synchronisation et utilitaires
-// ══════════════════════════════════════════════════════
-
-function execCmd(cmd) {
-  document.execCommand(cmd, false, null);
-  syncContent();
-}
-
-function syncContent() {
-  const editor = document.getElementById('content-fr-editor');
-  const hidden = document.getElementById('content_fr_hidden');
-  if (editor && hidden) {
-    hidden.value = editor.innerHTML;
-  }
-}
-
-function previewArticleImg(input) {
-  if (input.files && input.files[0]) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const preview = document.getElementById('article-img-preview');
-      preview.innerHTML = '<img src="' + e.target.result +
-        '" class="w-full h-full object-cover rounded-xl" />';
-      document.getElementById('article-img-name').textContent = input.files[0].name;
-    };
-    reader.readAsDataURL(input.files[0]);
-  }
-}
-
-// Synchroniser avant soumission
-document.querySelector('form').addEventListener('submit', function() {
-  syncContent();
-});
-</script>
+  
 {% endblock %}

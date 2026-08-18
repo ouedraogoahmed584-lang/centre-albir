@@ -1818,3 +1818,112 @@ table {
 .flex, [class*="flex"] {
   min-width: 0 !important;
 }
+
+/* ============================================================
+   CSS ADMIN RESPONSIVE — CENTRE AL-BIR
+   ============================================================ */
+
+/* Topbar admin */
+#admin-topbar {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Contenu admin scroll */
+#admin-content {
+  min-height: calc(100vh - 68px);
+  overflow-x: hidden;
+}
+
+/* Grilles admin responsive */
+.admin-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+@media (min-width: 640px) {
+  .admin-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.admin-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+@media (min-width: 640px) {
+  .admin-grid-3 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1024px) {
+  .admin-grid-3 { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Stats cards responsive */
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.875rem;
+}
+@media (min-width: 768px) {
+  .admin-stats-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 1024px) {
+  .admin-stats-grid { grid-template-columns: repeat(6, 1fr); }
+}
+
+/* Tables admin */
+.admin-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 16px;
+  border: 1.5px solid var(--border-card);
+}
+.admin-table {
+  width: 100%;
+  min-width: 600px;
+  border-collapse: collapse;
+}
+.admin-table th {
+  padding: 0.875rem 1rem;
+  text-align: left;
+  font-size: 0.675rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: var(--bg-section-alt);
+  border-bottom: 2px solid var(--border-color);
+  white-space: nowrap;
+}
+.admin-table td {
+  padding: 0.875rem 1rem;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-card);
+  vertical-align: middle;
+}
+.admin-table tbody tr:hover {
+  background: var(--bg-card-hover);
+}
+.admin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Formulaires admin */
+.admin-form-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-card);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+/* Page header admin */
+.admin-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
