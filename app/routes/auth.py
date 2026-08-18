@@ -3,8 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from app import db
 from app.models.user import User
 from datetime import datetime, timezone
-# Ajouter l'import si manquant
-from flask_login import login_required, login_user, logout_user, current_user
+
 auth_bp = Blueprint('auth', __name__)
 
 
@@ -47,7 +46,6 @@ def deconnexion():
     logout_user()
     flash('Vous avez été déconnecté.', 'info')
     return redirect(url_for('public.accueil'))
-
 
 
 # ══════════════════════════════════════════════════════════════

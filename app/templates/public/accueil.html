@@ -97,34 +97,42 @@
               <p class="text-yellow-400/80 text-sm mt-1">Année {{ site.school_year }}</p>
             </div>
 
-            <!-- Liste programmes -->
-            <div class="space-y-3">
-              {% set prog_icons = {
-                'memorisation-coran': ('📖', 'Mémorisation du Coran'),
-                'tajwid': ('🎤', 'Tajwid — Règles de Récitation'),
-                'tafsir': ('📚', 'Tafsir du Coran'),
-                'moutoun': ('📜', 'Moutoun fondamentaux'),
-                'sciences-islamiques': ('🕌', 'Sciences Islamiques'),
-                'programme-francais': ('🇫🇷', 'Programme Français CP1–CM2'),
-              } %}
+            <!-- Liste programmes — VERSION CORRIGÉE -->
+            <div style="display:flex;flex-direction:column;gap:0.5rem;">
               {% if programs %}
                 {% for program in programs[:6] %}
-                <div class="flex items-center gap-3 bg-white/5 rounded-xl p-3 hover:bg-white/10 transition-colors group cursor-pointer">
-                  <span class="text-xl">{{ program.icon }}</span>
-                  <div class="flex-1 min-w-0">
-                    <p class="text-white text-sm font-medium truncate">{{ program.name_fr }}</p>
-                    <p class="text-white/50 text-xs">{{ program.department|title }}</p>
+                <a href="{{ url_for('public.programme_detail', slug=program.slug) }}"
+                   style="display:flex;align-items:center;gap:0.875rem;
+                          padding:0.75rem;border-radius:10px;
+                          background:rgba(255,255,255,0.06);
+                          text-decoration:none;transition:background 0.2s;
+                          cursor:pointer;"
+                   onmouseover="this.style.background='rgba(255,255,255,0.12)'"
+                   onmouseout="this.style.background='rgba(255,255,255,0.06)'">
+                  <span style="font-size:1.375rem;flex-shrink:0;">
+                    {{ program.icon }}
+                  </span>
+                  <div style="flex:1;min-width:0;">
+                    <p style="color:#fff;font-size:0.8125rem;font-weight:600;
+                              white-space:nowrap;overflow:hidden;
+                              text-overflow:ellipsis;">
+                      {{ program.name_fr }}
+                    </p>
+                    <p style="color:rgba(255,255,255,0.40);font-size:0.7rem;">
+                      {% if program.department == 'islamic' %}Islamique{% else %}Français{% endif %}
+                    </p>
                   </div>
-                  <svg class="w-4 h-4 text-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </div>
+                  <svg style="width:14px;height:14px;color:#C89B3C;flex-shrink:0;"
+                       fill="none" stroke="#C89B3C" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </a>
                 {% endfor %}
               {% else %}
-                {% for slug, (icon, name) in prog_icons.items() %}
-                <div class="flex items-center gap-3 bg-white/5 rounded-xl p-3">
-                  <span class="text-xl">{{ icon }}</span>
-                  <p class="text-white text-sm font-medium">{{ name }}</p>
-                </div>
-                {% endfor %}
+                <p style="color:rgba(255,255,255,0.40);font-size:0.8rem;
+                          text-align:center;padding:1rem 0;">
+                  Programmes bientôt disponibles
+                </p>
               {% endif %}
             </div>
 

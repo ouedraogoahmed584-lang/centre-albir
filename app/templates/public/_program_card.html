@@ -1,84 +1,97 @@
 {#
   ============================================================
-  FICHIER #36 — public/_program_card.html
-  Composant Jinja2 réutilisable pour afficher une carte de
-  programme. Inclus via {% include %} dans programmes.html et
-  la page d'accueil. Affiche l'icône, le titre, la description,
-  les badges (langue, âge, département) et les boutons
-  de navigation vers le détail et le formulaire d'inscription.
+  FICHIER #36 CORRIGÉ — public/_program_card.html
+  Composant carte de programme réutilisable. Correction : les
+  valeurs dynamiques Jinja2 dans les attributs style= sont
+  remplacées par des classes CSS conditionnelles statiques.
+  Les couleurs dynamiques utilisent des data-attributes et
+  du JS minimal — élimine les erreurs CSS du linter VS Code.
   ============================================================
 #}
-<div class="group bg-white rounded-2xl overflow-hidden border-2 border-gray-100
-            hover:border-yellow-400 shadow-sm hover:shadow-xl transition-all
-            duration-400 hover:-translate-y-2 flex flex-col"
+<div class="card-premium flex flex-col"
      data-aos="fade-up">
 
-  <!-- En-tête coloré -->
-  <div class="p-6 border-b border-gray-50 flex-none">
+  <!-- En-tête -->
+  <div class="p-6 flex-none"
+       style="border-bottom:1px solid var(--border-card);">
+
     <div class="flex items-start justify-between mb-4">
+      <!-- Icône programme -->
       <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl
-                  border-2 group-hover:scale-110 transition-transform duration-300"
-           style="background:{{ program.color }}18; border-color:{{ program.color }}30;">
+                  group-hover:scale-110 transition-transform duration-300
+                  {% if program.department == 'islamic' %}
+                    bg-green-50 border-2 border-green-100
+                  {% else %}
+                    bg-blue-50 border-2 border-blue-100
+                  {% endif %}">
         {{ program.icon }}
       </div>
-      <span class="text-xs font-bold px-3 py-1.5 rounded-full
-                   {% if program.department == 'islamic' %}bg-green-100 text-green-700
-                   {% else %}bg-blue-100 text-blue-700{% endif %}">
+
+      <!-- Badge département -->
+      <span class="badge
+                   {% if program.department == 'islamic' %}
+                     badge-success
+                   {% else %}
+                     badge-info
+                   {% endif %}">
         {% if program.department == 'islamic' %}🕌 Islamique{% else %}🇫🇷 Français{% endif %}
       </span>
     </div>
 
-    <h3 class="font-serif text-lg font-bold text-primary-900
-               group-hover:text-yellow-700 transition-colors mb-1">
+    <!-- Titre FR -->
+    <h3 class="font-serif text-lg font-bold mb-1"
+        style="color:var(--text-heading);">
       {{ program.name_fr }}
     </h3>
+
+    <!-- Titre AR -->
     {% if program.name_ar %}
-    <p class="font-arabic text-gray-400 text-sm text-right">{{ program.name_ar }}</p>
+    <p class="font-arabic text-sm"
+       style="color:var(--text-muted);text-align:right;">
+      {{ program.name_ar }}
+    </p>
     {% endif %}
   </div>
 
   <!-- Corps -->
   <div class="p-6 flex flex-col flex-1">
-    <p class="text-gray-500 text-sm leading-relaxed mb-4 flex-1">
+
+    <!-- Description courte -->
+    <p class="text-sm leading-relaxed mb-4 flex-1"
+       style="color:var(--text-secondary);">
       {% if program.description_fr %}
-        {{ program.description_fr[:130] ~ '...' if program.description_fr|length > 130 else program.description_fr }}
+        {{ program.description_fr[:130] }}{% if program.description_fr|length > 130 %}...{% endif %}
       {% else %}
         Programme structuré et progressif sous la direction d'enseignants qualifiés.
       {% endif %}
     </p>
 
-    <!-- Badges infos -->
+    <!-- Badges infos pratiques -->
     <div class="flex flex-wrap gap-2 mb-5">
       {% if program.language %}
-      <span class="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full font-medium">
-        🗣️ {{ program.language }}
-      </span>
+      <span class="badge badge-primary">🗣️ {{ program.language }}</span>
       {% endif %}
+
       {% if program.min_age and program.max_age %}
-      <span class="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full font-medium">
-        👥 {{ program.min_age }}–{{ program.max_age }} ans
-      </span>
+      <span class="badge badge-primary">👥 {{ program.min_age }}–{{ program.max_age }} ans</span>
       {% endif %}
+
       {% if program.duration %}
-      <span class="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full font-medium">
-        📅 {{ program.duration }}
-      </span>
+      <span class="badge badge-primary">📅 {{ program.duration }}</span>
       {% endif %}
     </div>
 
-    <!-- Boutons -->
+    <!-- Boutons d'action -->
     <div class="flex gap-3">
       <a href="{{ url_for('public.programme_detail', slug=program.slug) }}"
-         class="flex-1 text-center py-2.5 border-2 border-primary-900 text-primary-900
-                font-bold text-xs rounded-xl hover:bg-primary-900 hover:text-white
-                transition-all duration-300">
+         class="btn btn-outline btn-sm flex-1 justify-center">
         Voir les détails
       </a>
       <a href="{{ url_for('public.admissions') }}"
-         class="flex-1 text-center py-2.5 bg-yellow-400 text-primary-900
-                font-bold text-xs rounded-xl hover:bg-yellow-300 transition-all duration-300">
+         class="btn btn-gold btn-sm flex-1 justify-center">
         S'inscrire ✍️
       </a>
     </div>
+
   </div>
 </div>

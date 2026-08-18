@@ -1,5 +1,10 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app
-from flask_login import login_required
+# ══════════════════════════════════════════════════════════════
+# IMPORTS admin.py — version corrigée avec tous les imports
+# current_user était manquant → crash sur toggle_user
+# ══════════════════════════════════════════════════════════════
+from flask import (Blueprint, render_template, redirect, url_for,
+                   flash, request, jsonify, current_app)
+from flask_login import login_required, current_user
 from app import db
 from app.models.user import User
 from app.models.student import Student
@@ -19,18 +24,18 @@ from datetime import datetime, timezone
 
 admin_bp = Blueprint('admin', __name__)
 
-
+# ── TABLEAU DE BORD ─────────────────────────────────────────
 @admin_bp.route('/dashboard')
 @login_required
 @admin_required
 def dashboard():
     stats = {
-        'total_students':     Student.query.filter_by(status='active').count(),
-        'total_teachers':     Teacher.query.filter_by(is_active=True).count(),
-        'total_applications': Application.query.count(),
+        'total_students':      Student.query.filter_by(status='active').count(),
+        'total_teachers':      Teacher.query.filter_by(is_active=True).count(),
+        'total_applications':  Application.query.count(),
         'pending_applications': Application.query.filter_by(status='pending').count(),
-        'total_articles':     Article.query.count(),
-        'active_ads':         Advertisement.query.filter_by(is_active=True).count(),
+        'total_articles':      Article.query.count(),
+        'active_ads':          Advertisement.query.filter_by(is_active=True).count(),
     }
     recent_applications = Application.query.order_by(Application.submitted_at.desc()).limit(5).all()
     recent_students     = Student.query.order_by(Student.created_at.desc()).limit(5).all()
@@ -40,8 +45,7 @@ def dashboard():
                            recent_applications=recent_applications,
                            recent_students=recent_students)
 
-
-# ── GESTION DES INSCRIPTIONS ──────────────────────────────
+# ── GESTION DES INSCRIPTIONS ─────────────────────────────────
 @admin_bp.route('/inscriptions')
 @login_required
 @admin_required
@@ -55,7 +59,6 @@ def inscriptions():
                            applications=applications,
                            current_status=status_filter)
 
-
 @admin_bp.route('/inscriptions/<int:id>')
 @login_required
 @admin_required
@@ -66,7 +69,6 @@ def inscription_detail(id):
                            application=application,
                            programs=programs)
 
-
 @admin_bp.route('/inscriptions/<int:id>/statut', methods=['POST'])
 @login_required
 @admin_required
@@ -76,14 +78,13 @@ def update_statut(id):
     notes       = request.form.get('notes', '')
     valid_statuses = ['pending','docs_received','under_review','accepted','rejected','enrolled']
     if new_status in valid_statuses:
-        application.status     = new_status
+        application.status      = new_status
         application.admin_notes = notes
         db.session.commit()
         flash(f'Statut mis à jour : {application.status_label}', 'success')
     return redirect(url_for('admin.inscription_detail', id=id))
 
-
-# ── GESTION DES ÉLÈVES ────────────────────────────────────
+# ── GESTION DES ÉLÈVES ───────────────────────────────────────
 @admin_bp.route('/eleves')
 @login_required
 @admin_required
@@ -91,8 +92,15 @@ def eleves():
     students = Student.query.order_by(Student.created_at.desc()).all()
     return render_template('admin/eleves.html', students=students)
 
+@admin_bp.route('/eleves/<int:id>')
+@login_required
+@admin_required
+def eleve_detail(id):
+    """Détail d'un élève"""
+    student = Student.query.get_or_404(id)
+    return render_template('admin/eleve_detail.html', student=student)
 
-# ── GESTION DES ENSEIGNANTS ───────────────────────────────
+# ── GESTION DES ENSEIGNANTS ─────────────────────────────────
 @admin_bp.route('/enseignants')
 @login_required
 @admin_required
@@ -100,15 +108,33 @@ def enseignants():
     teachers = Teacher.query.order_by(Teacher.sort_order).all()
     return render_template('admin/enseignants.html', teachers=teachers)
 
+@admin_bp.route('/enseignants/nouveau', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def nouvel_enseignant():
+    """Formulaire et traitement d'ajout d'enseignant"""
+    if request.method == 'POST':
+        teacher = Teacher(
+            full_name     = request.form.get('full_name', '').strip(),
+            speciality    = request.form.get('speciality', '').strip(),
+            qualification = request.form.get('qualification', '').strip(),
+            phone         = request.form.get('phone', '').strip(),
+            is_active     = True,
+            show_on_site  = request.form.get('show_on_site') == 'on',
+        )
+        db.session.add(teacher)
+        db.session.commit()
+        flash('Enseignant ajouté avec succès !', 'success')
+        return redirect(url_for('admin.enseignants'))
+    return render_template('admin/enseignant_form.html')
 
-# ── GESTION DES PROGRAMMES ────────────────────────────────
+# ── GESTION DES PROGRAMMES ───────────────────────────────────
 @admin_bp.route('/programmes')
 @login_required
 @admin_required
 def programmes():
     programs = Program.query.order_by(Program.sort_order).all()
     return render_template('admin/programmes.html', programs=programs)
-
 
 @admin_bp.route('/programmes/nouveau', methods=['GET', 'POST'])
 @login_required
@@ -138,15 +164,13 @@ def nouveau_programme():
             return redirect(url_for('admin.programmes'))
     return render_template('admin/programme_form.html', program=None)
 
-
-# ── GESTION DES PUBLICITÉS ────────────────────────────────
+# ── GESTION DES PUBLICITÉS ───────────────────────────────────
 @admin_bp.route('/publicites')
 @login_required
 @admin_required
 def publicites():
     ads = Advertisement.query.order_by(Advertisement.position, Advertisement.sort_order).all()
     return render_template('admin/publicites.html', ads=ads)
-
 
 @admin_bp.route('/publicites/nouvelle', methods=['GET', 'POST'])
 @login_required
@@ -179,7 +203,6 @@ def nouvelle_publicite():
         return redirect(url_for('admin.publicites'))
     return render_template('admin/publicite_form.html', ad=None)
 
-
 @admin_bp.route('/publicites/<int:id>/toggle', methods=['POST'])
 @login_required
 @admin_required
@@ -191,7 +214,6 @@ def toggle_publicite(id):
     flash(f'Publicité {status}.', 'success')
     return redirect(url_for('admin.publicites'))
 
-
 @admin_bp.route('/publicites/<int:id>/supprimer', methods=['POST'])
 @login_required
 @admin_required
@@ -202,15 +224,13 @@ def supprimer_publicite(id):
     flash('Publicité supprimée.', 'success')
     return redirect(url_for('admin.publicites'))
 
-
-# ── GESTION DES ACTUALITÉS ────────────────────────────────
+# ── GESTION DES ACTUALITÉS ───────────────────────────────────
 @admin_bp.route('/actualites')
 @login_required
 @admin_required
 def actualites():
     articles = Article.query.order_by(Article.created_at.desc()).all()
     return render_template('admin/actualites.html', articles=articles)
-
 
 @admin_bp.route('/actualites/nouvelle', methods=['GET', 'POST'])
 @login_required
@@ -219,7 +239,6 @@ def nouvel_article():
     if request.method == 'POST':
         title_fr = request.form.get('title_fr', '').strip()
         if title_fr:
-            # Upload image article
             image_url = ''
             if 'image' in request.files:
                 file = request.files['image']
@@ -250,15 +269,40 @@ def nouvel_article():
             return redirect(url_for('admin.actualites'))
     return render_template('admin/article_form.html', article=None)
 
+@admin_bp.route('/actualites/<int:id>/toggle', methods=['POST'])
+@login_required
+@admin_required
+def toggle_article(id):
+    """Bascule la publication d'un article"""
+    article = Article.query.get_or_404(id)
+    if article.is_published:
+        article.is_published = False
+        article.published_at = None
+        flash('Article dépublié.', 'warning')
+    else:
+        article.publish()
+        flash('Article publié avec succès !', 'success')
+    db.session.commit()
+    return redirect(url_for('admin.actualites'))
 
-# ── GESTION DE LA GALERIE ─────────────────────────────────
+@admin_bp.route('/actualites/<int:id>/supprimer', methods=['POST'])
+@login_required
+@admin_required
+def supprimer_article(id):
+    """Supprime définitivement un article"""
+    article = Article.query.get_or_404(id)
+    db.session.delete(article)
+    db.session.commit()
+    flash('Article supprimé.', 'success')
+    return redirect(url_for('admin.actualites'))
+
+# ── GESTION DE LA GALERIE ────────────────────────────────────
 @admin_bp.route('/galerie')
 @login_required
 @admin_required
 def galerie():
     photos = Gallery.query.order_by(Gallery.sort_order).all()
     return render_template('admin/galerie.html', photos=photos)
-
 
 @admin_bp.route('/galerie/ajouter', methods=['POST'])
 @login_required
@@ -286,14 +330,23 @@ def ajouter_photo():
         flash('Photo ajoutée avec succès !', 'success')
     return redirect(url_for('admin.galerie'))
 
+@admin_bp.route('/galerie/<int:id>/supprimer', methods=['POST'])
+@login_required
+@admin_required
+def supprimer_photo(id):
+    """Supprime une photo de la galerie"""
+    photo = Gallery.query.get_or_404(id)
+    db.session.delete(photo)
+    db.session.commit()
+    flash('Photo supprimée.', 'success')
+    return redirect(url_for('admin.galerie'))
 
-# ── PARAMÈTRES / LOGO ─────────────────────────────────────
+# ── PARAMÈTRES / LOGO ────────────────────────────────────────
 @admin_bp.route('/parametres', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def parametres():
     if request.method == 'POST':
-        # Upload du logo
         if 'logo' in request.files:
             file = request.files['logo']
             if file and file.filename and allowed_file(file.filename):
@@ -304,95 +357,13 @@ def parametres():
         return redirect(url_for('admin.parametres'))
     return render_template('admin/parametres.html')
 
-
-# ── GESTION DES UTILISATEURS ─────────────────────────────
+# ── GESTION DES UTILISATEURS ────────────────────────────────
 @admin_bp.route('/utilisateurs')
 @login_required
 @admin_required
 def utilisateurs():
     users = User.query.order_by(User.created_at.desc()).all()
     return render_template('admin/utilisateurs.html', users=users)
-
-
-
-
-
-# ══════════════════════════════════════════════════════════════
-# ROUTES MANQUANTES — à ajouter à la fin de admin.py
-# Gestion des événements, élèves et paiements
-# ══════════════════════════════════════════════════════════════
-
-@admin_bp.route('/evenements')
-@login_required
-@admin_required
-def evenements():
-    """Liste des événements du centre"""
-    events = Event.query.order_by(Event.start_date.desc()).all()
-    return render_template('admin/evenements.html', events=events)
-
-
-@admin_bp.route('/paiements')
-@login_required
-@admin_required
-def paiements():
-    """Gestion des paiements"""
-    payments = Payment.query.order_by(Payment.payment_date.desc()).all()
-    return render_template('admin/paiements.html', payments=payments)
-
-
-@admin_bp.route('/galerie/<int:id>/supprimer', methods=['POST'])
-@login_required
-@admin_required
-def supprimer_photo(id):
-    """Supprime une photo de la galerie"""
-    from app.models.gallery import Gallery
-    photo = Gallery.query.get_or_404(id)
-    db.session.delete(photo)
-    db.session.commit()
-    flash('Photo supprimee.', 'success')
-    return redirect(url_for('admin.galerie'))
-
-
-# ══════════════════════════════════════════════════════════════
-# ROUTES ARTICLES — toggle publication et suppression
-# Gèrent la publication/dépublication et la suppression d'articles
-# ══════════════════════════════════════════════════════════════
-
-@admin_bp.route('/actualites/<int:id>/toggle', methods=['POST'])
-@login_required
-@admin_required
-def toggle_article(id):
-    """Bascule la publication d'un article"""
-    article = Article.query.get_or_404(id)
-    if article.is_published:
-        article.is_published = False
-        article.published_at = None
-        flash('Article dépublié.', 'warning')
-    else:
-        article.publish()
-        flash('Article publié avec succès !', 'success')
-    db.session.commit()
-    return redirect(url_for('admin.actualites'))
-
-
-@admin_bp.route('/actualites/<int:id>/supprimer', methods=['POST'])
-@login_required
-@admin_required
-def supprimer_article(id):
-    """Supprime définitivement un article"""
-    article = Article.query.get_or_404(id)
-    db.session.delete(article)
-    db.session.commit()
-    flash('Article supprimé.', 'success')
-    return redirect(url_for('admin.actualites'))
-
-
-
-
-# ══════════════════════════════════════════════════════════════
-# ROUTES À AJOUTER À LA FIN DE app/routes/admin.py
-# Gestion utilisateurs et enseignants
-# ══════════════════════════════════════════════════════════════
 
 @admin_bp.route('/utilisateurs/<int:id>/toggle', methods=['POST'])
 @login_required
@@ -408,7 +379,6 @@ def toggle_user(id):
     status = 'activé' if user.is_active else 'désactivé'
     flash(f'Compte {status} avec succès.', 'success')
     return redirect(url_for('admin.utilisateurs'))
-
 
 @admin_bp.route('/utilisateurs/creer', methods=['POST'])
 @login_required
@@ -438,33 +408,20 @@ def creer_utilisateur():
     flash(f'Compte créé pour {full_name} ({role}).', 'success')
     return redirect(url_for('admin.utilisateurs'))
 
-
-@admin_bp.route('/enseignants/nouveau', methods=['GET', 'POST'])
+# ── GESTION DES ÉVÉNEMENTS ──────────────────────────────────
+@admin_bp.route('/evenements')
 @login_required
 @admin_required
-def nouvel_enseignant():
-    """Formulaire et traitement d'ajout d'enseignant"""
-    if request.method == 'POST':
-        from app.models.teacher import Teacher
-        teacher = Teacher(
-            full_name     = request.form.get('full_name', '').strip(),
-            speciality    = request.form.get('speciality', '').strip(),
-            qualification = request.form.get('qualification', '').strip(),
-            phone         = request.form.get('phone', '').strip(),
-            is_active     = True,
-            show_on_site  = request.form.get('show_on_site') == 'on',
-        )
-        db.session.add(teacher)
-        db.session.commit()
-        flash('Enseignant ajouté avec succès !', 'success')
-        return redirect(url_for('admin.enseignants'))
-    return render_template('admin/enseignant_form.html')
+def evenements():
+    """Liste des événements du centre"""
+    events = Event.query.order_by(Event.start_date.desc()).all()
+    return render_template('admin/evenements.html', events=events)
 
-
-@admin_bp.route('/eleves/<int:id>')
+# ── GESTION DES PAIEMENTS ───────────────────────────────────
+@admin_bp.route('/paiements')
 @login_required
 @admin_required
-def eleve_detail(id):
-    """Détail d'un élève"""
-    student = Student.query.get_or_404(id)
-    return render_template('admin/eleve_detail.html', student=student)
+def paiements():
+    """Gestion des paiements"""
+    payments = Payment.query.order_by(Payment.payment_date.desc()).all()
+    return render_template('admin/paiements.html', payments=payments)

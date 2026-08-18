@@ -1,11 +1,10 @@
 {#
   ============================================================
-  FICHIER #41 — public/galerie.html
-  Galerie photo du Centre Al-Bir. Affiche toutes les images
-  uploadées par l'administrateur, organisées par catégories
-  (salles, activités, cérémonies, enseignants, infrastructure).
-  Intègre un système de lightbox pour visualiser les photos en
-  plein écran avec navigation au clavier et au clic.
+  FICHIER #41 CORRIGÉ — public/galerie.html
+  Galerie photo du Centre Al-Bir avec système de filtres par
+  catégorie et lightbox plein écran. Correction : les données
+  Jinja2 sont passées via attributs data-* HTML plutôt qu'en
+  ligne dans les handlers JS — élimine les erreurs de syntaxe.
   ============================================================
 #}
 {% extends "base.html" %}
@@ -14,26 +13,31 @@
 {% block content %}
 
 <section class="relative pt-24 pb-16"
-         style="background:linear-gradient(135deg,#022C22 0%,#064E3B 70%,#065F46 100%);">
-  <div class="pattern-overlay absolute inset-0 opacity-10"></div>
+         style="background:var(--gradient-hero);">
+  <div class="islamic-pattern"></div>
   <div class="relative z-10 max-w-3xl mx-auto px-4 text-center">
-    <h1 class="font-serif text-4xl md:text-5xl font-bold text-white mb-4" data-aos="fade-up">
-      Galerie Photos
-    </h1>
-    <p class="text-white/70 text-lg" data-aos="fade-up" data-aos-delay="100">
+    <h1 class="font-serif text-4xl md:text-5xl font-bold text-white mb-4"
+        data-aos="fade-up">Galerie Photos</h1>
+    <p class="text-lg" style="color:rgba(255,255,255,0.70);"
+       data-aos="fade-up" data-aos-delay="100">
       Découvrez la vie au sein du Centre Al-Bir
     </p>
   </div>
   <div class="absolute bottom-0 left-0 right-0">
-    <svg viewBox="0 0 1440 60" fill="none"><path d="M0 60L1440 60L1440 15C1200 45 960 60 720 52C480 44 240 15 0 30V60Z" fill="#FAF7F0"/></svg>
+    <svg viewBox="0 0 1440 60" fill="none">
+      <path d="M0 60L1440 60L1440 15C1200 45 960 60 720 52C480 44 240 15 0 30V60Z"
+            fill="#FAF7F0"/>
+    </svg>
   </div>
 </section>
 
-<section class="py-20 bg-ivory">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<section class="py-20" style="background:var(--bg-body);">
+  <div class="container-albir">
 
-    <!-- Filtres -->
-    <div class="flex flex-wrap gap-3 justify-center mb-12" data-aos="fade-up">
+    <!-- Filtres catégories — VERSION CORRIGÉE -->
+    <div style="display:flex;flex-wrap:wrap;gap:0.75rem;
+                justify-content:center;margin-bottom:3rem;"
+         data-aos="fade-up">
       {% for cat, label, icon in [
         ('',              'Toutes',         '🖼️'),
         ('salle',         'Salles',         '🏫'),
@@ -43,10 +47,21 @@
         ('infrastructure','Infrastructure', '🏗️'),
       ] %}
       <button onclick="filterGallery('{{ cat }}')"
-              class="gallery-filter flex items-center gap-2 px-5 py-2 rounded-full font-semibold
-                     text-sm transition-all {% if loop.first %}bg-primary-900 text-white shadow-md
-                     {% else %}bg-white text-gray-600 border border-gray-200 hover:border-primary-300{% endif %}"
-              data-gcat="{{ cat }}">
+              class="gallery-filter"
+              data-gcat="{{ cat }}"
+              style="display:flex;align-items:center;gap:0.5rem;
+                     padding:0.5rem 1.25rem;border-radius:999px;
+                     font-size:0.875rem;font-weight:600;cursor:pointer;
+                     border:1.5px solid;transition:all 0.25s;
+                     {% if loop.first %}
+                       background:var(--color-primary);
+                       color:#fff;
+                       border-color:var(--color-primary);
+                     {% else %}
+                       background:var(--bg-card);
+                       color:var(--text-secondary);
+                       border-color:var(--border-color);
+                     {% endif %}">
         {{ icon }} {{ label }}
       </button>
       {% endfor %}
@@ -54,30 +69,30 @@
 
     {% if photos %}
 
-    <!-- Grille masonry-like -->
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="gallery-grid">
+    <!-- Grille photos -->
+    <!-- CORRECTION : data-src, data-caption, data-index en attributs HTML -->
+    <div class="gallery-grid" id="gallery-grid">
       {% for photo in photos %}
-      <div class="gallery-item group relative overflow-hidden rounded-2xl cursor-pointer
-                  bg-gray-100 shadow-sm hover:shadow-xl transition-all duration-400
-                  hover:-translate-y-1"
+      <div class="gallery-item"
            data-gcat="{{ photo.category }}"
-           onclick="openLightbox({{ loop.index0 }}, '{{ photo.image_url }}', '{{ photo.caption_fr or '' }}')"
-           data-aos="fade-up" data-aos-delay="{{ loop.index0 % 4 * 50 }}"
-           style="aspect-ratio: {% if loop.index0 % 5 == 0 %}4/3{% else %}1/1{% endif %}">
+           data-index="{{ loop.index0 }}"
+           data-src="{{ photo.image_url }}"
+           data-caption="{{ photo.caption_fr or '' }}"
+           onclick="openFromElement(this)"
+           data-aos="fade-up"
+           data-aos-delay="{{ loop.index0 % 4 * 50 }}">
 
         <img src="{{ photo.image_url }}"
              alt="{{ photo.caption_fr or 'Centre Al-Bir' }}"
-             loading="lazy"
-             class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+             loading="lazy" />
 
-        <!-- Overlay -->
-        <div class="absolute inset-0 bg-gradient-to-t from-primary-950/80 via-transparent
-                    to-transparent opacity-0 group-hover:opacity-100 transition-opacity
-                    duration-300 flex items-end p-4">
+        <div class="gallery-overlay">
           {% if photo.caption_fr %}
-          <p class="text-white text-xs font-medium">{{ photo.caption_fr }}</p>
+          <p style="color:#fff;font-size:0.75rem;font-weight:600;">
+            {{ photo.caption_fr }}
+          </p>
           {% endif %}
-          <span class="ml-auto text-white/80 text-lg">🔍</span>
+          <span style="margin-left:auto;font-size:1.25rem;">🔍</span>
         </div>
       </div>
       {% endfor %}
@@ -85,49 +100,75 @@
 
     <!-- LIGHTBOX -->
     <div id="lightbox"
-         class="fixed inset-0 z-[9999] bg-black/95 hidden items-center justify-center"
+         style="display:none;position:fixed;inset:0;z-index:9999;
+                background:rgba(0,0,0,0.96);flex-direction:column;
+                align-items:center;justify-content:center;"
          onclick="closeLightboxOutside(event)">
 
-      <!-- Bouton fermer -->
+      <!-- Fermer -->
       <button onclick="closeLightbox()"
-              class="absolute top-4 right-4 text-white/70 hover:text-white text-2xl font-bold
-                     w-10 h-10 flex items-center justify-center rounded-full bg-white/10
-                     hover:bg-white/20 transition-all z-10">
+              style="position:absolute;top:1rem;right:1rem;
+                     background:rgba(255,255,255,0.12);border:none;
+                     color:#fff;width:44px;height:44px;border-radius:50%;
+                     font-size:1.25rem;cursor:pointer;display:flex;
+                     align-items:center;justify-content:center;
+                     transition:background 0.2s;"
+              onmouseover="this.style.background='rgba(255,255,255,0.25)'"
+              onmouseout="this.style.background='rgba(255,255,255,0.12)'">
         ✕
       </button>
 
-      <!-- Navigation gauche -->
+      <!-- Précédent -->
       <button onclick="prevPhoto(event)"
-              class="absolute left-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white
-                     w-12 h-12 flex items-center justify-center rounded-full bg-white/10
-                     hover:bg-white/20 transition-all z-10 text-xl">
+              style="position:absolute;left:1rem;top:50%;
+                     transform:translateY(-50%);background:rgba(255,255,255,0.12);
+                     border:none;color:#fff;width:48px;height:48px;
+                     border-radius:50%;font-size:1.5rem;cursor:pointer;
+                     display:flex;align-items:center;justify-content:center;
+                     transition:background 0.2s;"
+              onmouseover="this.style.background='rgba(255,255,255,0.25)'"
+              onmouseout="this.style.background='rgba(255,255,255,0.12)'">
         ‹
       </button>
 
-      <!-- Image principale -->
-      <div class="max-w-4xl max-h-screen p-8 flex flex-col items-center justify-center">
-        <img id="lightbox-img" src="#" alt="Photo"
-             class="max-w-full max-h-[75vh] object-contain rounded-xl shadow-2xl" />
+      <!-- Image centrale -->
+      <div style="padding:2rem;display:flex;flex-direction:column;
+                  align-items:center;max-width:90vw;">
+        <img id="lightbox-img" src="" alt="Photo Centre Al-Bir"
+             style="max-width:100%;max-height:75vh;object-fit:contain;
+                    border-radius:12px;box-shadow:0 16px 60px rgba(0,0,0,0.5);" />
         <p id="lightbox-caption"
-           class="text-white/70 text-sm mt-4 text-center max-w-lg"></p>
+           style="color:rgba(255,255,255,0.70);font-size:0.875rem;
+                  margin-top:1rem;text-align:center;max-width:500px;"></p>
         <p id="lightbox-counter"
-           class="text-white/40 text-xs mt-2"></p>
+           style="color:rgba(255,255,255,0.35);font-size:0.75rem;
+                  margin-top:0.375rem;"></p>
       </div>
 
-      <!-- Navigation droite -->
+      <!-- Suivant -->
       <button onclick="nextPhoto(event)"
-              class="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white
-                     w-12 h-12 flex items-center justify-center rounded-full bg-white/10
-                     hover:bg-white/20 transition-all z-10 text-xl">
+              style="position:absolute;right:1rem;top:50%;
+                     transform:translateY(-50%);background:rgba(255,255,255,0.12);
+                     border:none;color:#fff;width:48px;height:48px;
+                     border-radius:50%;font-size:1.5rem;cursor:pointer;
+                     display:flex;align-items:center;justify-content:center;
+                     transition:background 0.2s;"
+              onmouseover="this.style.background='rgba(255,255,255,0.25)'"
+              onmouseout="this.style.background='rgba(255,255,255,0.12)'">
         ›
       </button>
     </div>
 
     {% else %}
-    <div class="text-center py-20">
-      <p class="text-6xl mb-4">🖼️</p>
-      <h3 class="font-serif text-2xl font-bold text-gray-700 mb-2">Galerie vide</h3>
-      <p class="text-gray-400">Les photos du centre seront ajoutées prochainement.</p>
+    <div style="text-align:center;padding:5rem 0;">
+      <p style="font-size:4rem;margin-bottom:1rem;">🖼️</p>
+      <h3 class="font-serif" style="color:var(--text-heading);font-size:1.5rem;
+                                     font-weight:700;margin-bottom:0.75rem;">
+        Galerie vide
+      </h3>
+      <p style="color:var(--text-muted);">
+        Les photos du centre seront ajoutées prochainement.
+      </p>
     </div>
     {% endif %}
 
@@ -138,52 +179,67 @@
 
 {% block scripts_extra %}
 <script>
-// ══════════════════════════════════════════════════════
-// GALERIE + LIGHTBOX — Centre Al-Bir
-// ══════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════════
+   GALERIE + LIGHTBOX — CORRECTION COMPLÈTE
+   Utilise data-* attributes au lieu de Jinja2 dans onclick
+   Élimine toutes les erreurs de syntaxe JS du linter
+══════════════════════════════════════════════════════════ */
 
+// Collecter toutes les photos depuis les attributs data-*
 let allPhotos = [];
 let currentIndex = 0;
+let visiblePhotos = [];
 
-// Collecte des photos depuis le DOM
-document.querySelectorAll('.gallery-item').forEach((item, i) => {
-  const img = item.querySelector('img');
-  const cap = item.querySelector('.text-white.text-xs');
-  allPhotos.push({
-    src:     img ? img.src : '#',
-    caption: cap ? cap.textContent.trim() : '',
+function buildPhotoList() {
+  allPhotos = [];
+  document.querySelectorAll('.gallery-item').forEach(function(item) {
+    allPhotos.push({
+      src:     item.dataset.src     || '',
+      caption: item.dataset.caption || '',
+      cat:     item.dataset.gcat    || '',
+    });
   });
-});
-
-// Filtre galerie par catégorie
-function filterGallery(cat) {
-  document.querySelectorAll('.gallery-filter').forEach(btn => {
-    btn.classList.remove('bg-primary-900','text-white','shadow-md');
-    btn.classList.add('bg-white','text-gray-600','border','border-gray-200');
-  });
-  document.querySelector('[data-gcat="' + cat + '"]').classList.add('bg-primary-900','text-white','shadow-md');
-  document.querySelector('[data-gcat="' + cat + '"]').classList.remove('bg-white','text-gray-600','border','border-gray-200');
-  document.querySelectorAll('.gallery-item').forEach(item => {
-    item.style.display = (!cat || item.dataset.gcat === cat) ? 'block' : 'none';
-  });
+  visiblePhotos = allPhotos.slice();
 }
 
-// Ouvrir lightbox
-function openLightbox(index, src, caption) {
-  currentIndex = index;
-  document.getElementById('lightbox-img').src = src;
-  document.getElementById('lightbox-caption').textContent = caption;
+// Ouvrir depuis l'élément cliqué (via data-* attributes)
+function openFromElement(el) {
+  buildPhotoList();
+
+  // Filtrer selon la catégorie active
+  const activeFilter = document.querySelector('.gallery-filter.active');
+  const activeCat    = activeFilter ? activeFilter.dataset.gcat : '';
+
+  if (activeCat) {
+    visiblePhotos = allPhotos.filter(function(p) { return p.cat === activeCat; });
+  } else {
+    visiblePhotos = allPhotos.slice();
+  }
+
+  // Trouver l'index dans la liste visible
+  const clickedSrc = el.dataset.src;
+  currentIndex     = visiblePhotos.findIndex(function(p) { return p.src === clickedSrc; });
+  if (currentIndex < 0) currentIndex = 0;
+
+  showLightboxPhoto();
+}
+
+function showLightboxPhoto() {
+  if (!visiblePhotos.length) return;
+  const photo = visiblePhotos[currentIndex];
+
+  document.getElementById('lightbox-img').src         = photo.src;
+  document.getElementById('lightbox-caption').textContent = photo.caption;
   document.getElementById('lightbox-counter').textContent =
-    (index + 1) + ' / ' + allPhotos.length;
-  document.getElementById('lightbox').classList.remove('hidden');
-  document.getElementById('lightbox').classList.add('flex');
+    (currentIndex + 1) + ' / ' + visiblePhotos.length;
+
+  const lb = document.getElementById('lightbox');
+  lb.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 }
 
-// Fermer lightbox
 function closeLightbox() {
-  document.getElementById('lightbox').classList.add('hidden');
-  document.getElementById('lightbox').classList.remove('flex');
+  document.getElementById('lightbox').style.display = 'none';
   document.body.style.overflow = '';
 }
 
@@ -191,32 +247,57 @@ function closeLightboxOutside(e) {
   if (e.target.id === 'lightbox') closeLightbox();
 }
 
-// Navigation
 function prevPhoto(e) {
   e.stopPropagation();
-  currentIndex = (currentIndex - 1 + allPhotos.length) % allPhotos.length;
-  const p = allPhotos[currentIndex];
-  document.getElementById('lightbox-img').src = p.src;
-  document.getElementById('lightbox-caption').textContent = p.caption;
-  document.getElementById('lightbox-counter').textContent = (currentIndex + 1) + ' / ' + allPhotos.length;
+  currentIndex = (currentIndex - 1 + visiblePhotos.length) % visiblePhotos.length;
+  showLightboxPhoto();
 }
 
 function nextPhoto(e) {
   e.stopPropagation();
-  currentIndex = (currentIndex + 1) % allPhotos.length;
-  const p = allPhotos[currentIndex];
-  document.getElementById('lightbox-img').src = p.src;
-  document.getElementById('lightbox-caption').textContent = p.caption;
-  document.getElementById('lightbox-counter').textContent = (currentIndex + 1) + ' / ' + allPhotos.length;
+  currentIndex = (currentIndex + 1) % visiblePhotos.length;
+  showLightboxPhoto();
 }
 
 // Navigation clavier
-document.addEventListener('keydown', e => {
-  if (!document.getElementById('lightbox').classList.contains('hidden')) {
-    if (e.key === 'ArrowLeft')  prevPhoto(e);
-    if (e.key === 'ArrowRight') nextPhoto(e);
-    if (e.key === 'Escape')     closeLightbox();
-  }
+document.addEventListener('keydown', function(e) {
+  const lb = document.getElementById('lightbox');
+  if (!lb || lb.style.display === 'none') return;
+  if (e.key === 'ArrowLeft')  prevPhoto(e);
+  if (e.key === 'ArrowRight') nextPhoto(e);
+  if (e.key === 'Escape')     closeLightbox();
 });
+
+// Filtrage galerie
+function filterGallery(cat) {
+  // Mise à jour boutons
+  document.querySelectorAll('.gallery-filter').forEach(function(btn) {
+    const isActive = btn.dataset.gcat === cat;
+    btn.classList.toggle('active', isActive);
+    if (isActive) {
+      btn.style.background  = 'var(--color-primary)';
+      btn.style.color       = '#fff';
+      btn.style.border      = '1.5px solid var(--color-primary)';
+      btn.style.boxShadow   = 'var(--shadow-primary)';
+    } else {
+      btn.style.background  = 'var(--bg-card)';
+      btn.style.color       = 'var(--text-secondary)';
+      btn.style.border      = '1.5px solid var(--border-color)';
+      btn.style.boxShadow   = 'none';
+    }
+  });
+
+  // Afficher/masquer items
+  document.querySelectorAll('.gallery-item').forEach(function(item) {
+    const show = !cat || item.dataset.gcat === cat;
+    item.style.display = show ? '' : 'none';
+  });
+
+  // Reconstruire liste visible
+  buildPhotoList();
+}
+
+// Init au chargement
+buildPhotoList();
 </script>
 {% endblock %}

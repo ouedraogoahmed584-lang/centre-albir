@@ -1384,3 +1384,70 @@ body, .card, .btn, #navbar, .admin-sidebar,
   transition: background-color 0.4s ease, color 0.3s ease,
               border-color 0.3s ease, box-shadow 0.3s ease;
 }
+
+/* ══════════════════════════════════════════════════════════
+   CORRECTIONS VENDOR PREFIXES
+   Ajout des propriétés standard pour compatibilité complète
+   Corrige les avertissements du linter VS Code (severity 4)
+══════════════════════════════════════════════════════════ */
+
+/* Correction appearance */
+.form-select {
+  -webkit-appearance: none;
+  -moz-appearance:    none;
+  appearance:         none;   /* standard */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+  background-repeat:   no-repeat;
+  background-position: right 1rem center;
+  background-size:     1rem;
+  padding-right:       2.5rem;
+}
+
+/* Correction line-clamp standard */
+.line-clamp-1 {
+  display:            -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  line-clamp:         1;        /* standard */
+  overflow:           hidden;
+}
+.line-clamp-2 {
+  display:            -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-clamp:         2;        /* standard */
+  overflow:           hidden;
+}
+.line-clamp-3 {
+  display:            -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  line-clamp:         3;        /* standard */
+  overflow:           hidden;
+}
+
+/* ══════════════════════════════════════════════════════════
+   BOUTON THEME SWITCHER — style corrigé
+   Remplace le style inline problématique du writing-mode
+══════════════════════════════════════════════════════════ */
+#theme-toggle-btn {
+  background:      var(--gradient-gold);
+  color:           #022C22;
+  border:          none;
+  width:           44px;
+  min-height:      80px;
+  border-radius:   14px 0 0 14px;
+  cursor:          pointer;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  font-size:       1.375rem;
+  box-shadow:      -4px 0 20px rgba(0,0,0,0.20);
+  transition:      var(--transition);
+  flex-shrink:     0;
+  padding:         0.75rem 0;
+}
+
+#theme-toggle-btn:hover {
+  background: linear-gradient(135deg, #A67C2A 0%, #E8C472 100%);
+}
