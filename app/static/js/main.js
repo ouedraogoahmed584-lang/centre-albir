@@ -1,211 +1,279 @@
 // ============================================================
-// FICHIER #52 — static/js/main.js
-// Script JavaScript global du Centre Al-Bir. Contient toutes
-// les interactions communes à toutes les pages : compteur animé
-// pour les statistiques, lazy loading des images, fermeture
-// automatique des messages flash, animation de smooth scroll,
-// détection de la connexion réseau et utilitaires généraux.
+// FICHIER #58 — static/js/main.js (VERSION COMPLÈTE)
+// JavaScript global du Centre Al-Bir. Gère le système de thèmes
+// multi-couleurs avec persistance localStorage, les boutons
+// flottants responsives, les animations au scroll, le menu
+// mobile, et toutes les interactions premium du site.
 // ============================================================
 
 'use strict';
 
 /* ══════════════════════════════════════════════════════════
-   INITIALISATION AU CHARGEMENT
+   SYSTÈME DE THÈMES PREMIUM
 ══════════════════════════════════════════════════════════ */
-document.addEventListener('DOMContentLoaded', function () {
-  initCounters();
-  initLazyImages();
-  initSmoothScroll();
-  initAutoCloseFlash();
-  initNetworkStatus();
-  initCopyToClipboard();
+const THEMES = ['classic', 'dark', 'gold', 'emerald', 'midnight'];
+const THEME_KEY = 'albir-theme';
+
+/**
+ * Applique un thème et le sauvegarde en localStorage
+ */
+function setTheme(theme) {
+  if (!THEMES.includes(theme)) theme = 'classic';
+
+  // Appliquer le thème
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem(THEME_KEY, theme);
+
+  // Mettre à jour les boutons du panel
+  document.querySelectorAll('.theme-option').forEach(opt => {
+    const optTheme = opt.id.replace('opt-', '');
+    if (optTheme === theme) {
+      opt.classList.add('active');
+    } else {
+      opt.classList.remove('active');
+    }
+  });
+
+  // Changer la meta theme-color
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  const colors = {
+    classic:  '#064E3B',
+    dark:     '#111111',
+    gold:     '#1A1409',
+    emerald:  '#059669',
+    midnight: '#0A0E1A',
+  };
+  if (metaTheme) metaTheme.content = colors[theme] || colors.classic;
+}
+
+/**
+ * Charge le thème sauvegardé (ou "classic" par défaut)
+ */
+function loadSavedTheme() {
+  const saved = localStorage.getItem(THEME_KEY) || 'classic';
+  setTheme(saved);
+}
+
+/**
+ * Ouvre/ferme le panneau de thèmes
+ */
+function toggleThemePanel() {
+  const panel = document.getElementById('theme-panel');
+  if (panel) panel.classList.toggle('open');
+}
+
+// Fermer le panel si on clique ailleurs
+document.addEventListener('click', function(e) {
+  const panel = document.getElementById('theme-panel');
+  if (panel && panel.classList.contains('open')) {
+    if (!panel.contains(e.target)) {
+      panel.classList.remove('open');
+    }
+  }
 });
 
 
 /* ══════════════════════════════════════════════════════════
-   COMPTEUR ANIMÉ — Statistiques de la page d'accueil
-   Anime les chiffres de 0 jusqu'à leur valeur cible
-   lors de leur apparition dans le viewport.
+   SCROLL TOP BUTTON
 ══════════════════════════════════════════════════════════ */
-function initCounters() {
-  const counters = document.querySelectorAll('[data-counter]');
-  if (!counters.length) return;
+function initScrollTop() {
+  const btn = document.getElementById('btn-scroll-top');
+  if (!btn) return;
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const el      = entry.target;
-        const target  = parseInt(el.dataset.counter, 10);
-        const suffix  = el.dataset.suffix || '';
-        const duration = 1800;
-        const step    = Math.ceil(target / (duration / 16));
-        let current   = 0;
-
-        const timer = setInterval(() => {
-          current = Math.min(current + step, target);
-          el.textContent = current.toLocaleString('fr-FR') + suffix;
-          if (current >= target) clearInterval(timer);
-        }, 16);
-
-        observer.unobserve(el);
-      }
-    });
-  }, { threshold: 0.5 });
-
-  counters.forEach(el => observer.observe(el));
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 400) {
+      btn.classList.add('visible');
+    } else {
+      btn.classList.remove('visible');
+    }
+  }, { passive: true });
 }
 
 
 /* ══════════════════════════════════════════════════════════
-   LAZY LOADING — Chargement différé des images
-   Charge les images uniquement quand elles entrent dans
-   le viewport, améliorant les performances sur mobile.
+   ESPACE PERSONNEL — DROPDOWN
 ══════════════════════════════════════════════════════════ */
-function initLazyImages() {
-  if (!('IntersectionObserver' in window)) return;
+let espaceOpen = false;
 
-  const lazyImages = document.querySelectorAll('img[data-src]');
-  if (!lazyImages.length) return;
+function toggleEspaceMenu() {
+  const menu = document.getElementById('espace-menu');
+  const btn  = document.getElementById('btn-espace');
+  if (!menu) return;
 
-  const imageObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const img = entry.target;
-        img.src = img.dataset.src;
-        img.classList.add('animate-fade-in');
-        img.removeAttribute('data-src');
-        imageObserver.unobserve(img);
-      }
-    });
-  }, { rootMargin: '100px' });
+  espaceOpen = !espaceOpen;
+  menu.style.display = espaceOpen ? 'block' : 'none';
 
-  lazyImages.forEach(img => imageObserver.observe(img));
+  // Rotation icône
+  if (btn) {
+    btn.style.transform = espaceOpen ? 'scale(1.1) rotate(10deg)' : 'scale(1) rotate(0)';
+    btn.style.background = espaceOpen
+      ? 'linear-gradient(135deg,#C89B3C,#E8C472)'
+      : 'var(--gradient-button)';
+  }
+}
+
+// Fermer si clic extérieur
+document.addEventListener('click', function(e) {
+  const container = document.getElementById('espace-container');
+  if (container && !container.contains(e.target) && espaceOpen) {
+    espaceOpen = false;
+    const menu = document.getElementById('espace-menu');
+    const btn  = document.getElementById('btn-espace');
+    if (menu) menu.style.display = 'none';
+    if (btn) {
+      btn.style.transform = 'scale(1)';
+      btn.style.background = '';
+    }
+  }
+});
+
+
+/* ══════════════════════════════════════════════════════════
+   NAVBAR SCROLL EFFECT
+══════════════════════════════════════════════════════════ */
+function initNavbar() {
+  const navbar = document.getElementById('navbar');
+  if (!navbar) return;
+
+  let lastScroll = 0;
+
+  window.addEventListener('scroll', () => {
+    const currentScroll = window.scrollY;
+
+    if (currentScroll > 60) {
+      navbar.classList.add('scrolled');
+    } else {
+      navbar.classList.remove('scrolled');
+    }
+
+    lastScroll = currentScroll;
+  }, { passive: true });
 }
 
 
 /* ══════════════════════════════════════════════════════════
-   SMOOTH SCROLL — Navigation fluide vers les ancres
-   Intercepte les liens internes (#section) pour une
-   navigation animée et prend en compte la hauteur de navbar.
+   MENU MOBILE
 ══════════════════════════════════════════════════════════ */
-function initSmoothScroll() {
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-      const target = document.querySelector(this.getAttribute('href'));
-      if (target) {
-        e.preventDefault();
-        const navHeight = document.getElementById('navbar')
-          ? document.getElementById('navbar').offsetHeight
-          : 70;
-        const top = target.getBoundingClientRect().top
-          + window.pageYOffset
-          - navHeight
-          - 20;
-        window.scrollTo({ top, behavior: 'smooth' });
-      }
-    });
+function toggleMobile() {
+  const menu = document.getElementById('mobile-menu');
+  const icon = document.getElementById('burger-icon');
+  if (!menu) return;
+
+  const isOpen = menu.classList.toggle('open');
+
+  // Changer l'icône burger → croix
+  if (icon) {
+    icon.innerHTML = isOpen
+      ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>'
+      : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>';
+  }
+
+  // Bloquer scroll body
+  document.body.style.overflow = isOpen ? 'hidden' : '';
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   SIDEBAR ADMIN MOBILE
+══════════════════════════════════════════════════════════ */
+function toggleAdminSidebar() {
+  const sidebar = document.querySelector('.admin-sidebar');
+  if (sidebar) sidebar.classList.toggle('mobile-open');
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   LOADER DE PAGE
+══════════════════════════════════════════════════════════ */
+function initLoader() {
+  const loader = document.getElementById('page-loader');
+  if (!loader) return;
+
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      loader.classList.add('hidden');
+    }, 700);
   });
+
+  // Fallback si load ne se déclenche pas
+  setTimeout(() => {
+    if (loader && !loader.classList.contains('hidden')) {
+      loader.classList.add('hidden');
+    }
+  }, 3000);
 }
 
 
 /* ══════════════════════════════════════════════════════════
-   MESSAGES FLASH — Fermeture automatique
-   Ferme automatiquement les alertes après 6 secondes
-   avec une transition douce. L'utilisateur peut aussi
-   fermer manuellement en cliquant.
+   MESSAGES FLASH AUTO-CLOSE
 ══════════════════════════════════════════════════════════ */
-function initAutoCloseFlash() {
-  const flashContainer = document.getElementById('flash-container');
-  if (!flashContainer) return;
+function initFlashMessages() {
+  const container = document.getElementById('flash-container');
+  if (!container) return;
 
   setTimeout(() => {
-    flashContainer.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-    flashContainer.style.opacity    = '0';
-    flashContainer.style.transform  = 'translateX(20px)';
-    setTimeout(() => {
-      if (flashContainer.parentNode) {
-        flashContainer.parentNode.removeChild(flashContainer);
-      }
-    }, 500);
+    container.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    container.style.opacity    = '0';
+    container.style.transform  = 'translateX(20px)';
+    setTimeout(() => container.remove(), 500);
   }, 6000);
 }
 
 
 /* ══════════════════════════════════════════════════════════
-   STATUT RÉSEAU — Détection hors-ligne
-   Affiche un avertissement discret si la connexion internet
-   est perdue. Particulièrement utile en Afrique de l'Ouest
-   où la connectivité peut être intermittente.
+   RÉSEAU HORS-LIGNE
 ══════════════════════════════════════════════════════════ */
 function initNetworkStatus() {
-  const banner = createNetworkBanner();
+  let banner = null;
+
+  function createBanner() {
+    if (banner) return;
+    banner = document.createElement('div');
+    banner.innerHTML = '📡 Connexion perdue';
+    Object.assign(banner.style, {
+      position: 'fixed', bottom: '90px', left: '50%',
+      transform: 'translateX(-50%)',
+      background: '#1F2937', color: 'white',
+      padding: '10px 20px', borderRadius: '50px',
+      fontSize: '13px', fontWeight: '700',
+      zIndex: '99999', display: 'none',
+      whiteSpace: 'nowrap',
+      boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
+    });
+    document.body.appendChild(banner);
+  }
 
   window.addEventListener('offline', () => {
-    banner.style.display = 'flex';
-    banner.classList.add('animate-fade-in');
+    createBanner();
+    if (banner) { banner.style.display = 'block'; }
   });
 
   window.addEventListener('online', () => {
-    banner.style.opacity    = '0';
-    banner.style.transition = 'opacity 0.5s ease';
-    setTimeout(() => { banner.style.display = 'none'; banner.style.opacity = '1'; }, 500);
+    if (banner) {
+      banner.textContent     = '✅ Reconnecté !';
+      banner.style.background = '#059669';
+      setTimeout(() => { banner.style.display = 'none'; }, 2500);
+    }
   });
-}
-
-function createNetworkBanner() {
-  const banner = document.createElement('div');
-  banner.id    = 'network-banner';
-  banner.style.cssText = `
-    display: none;
-    position: fixed;
-    bottom: 80px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 9999;
-    background: #1F2937;
-    color: white;
-    padding: 12px 24px;
-    border-radius: 50px;
-    font-size: 13px;
-    font-weight: 600;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-    white-space: nowrap;
-  `;
-  banner.innerHTML = '📡 Connexion perdue — Vérifiez votre réseau';
-  document.body.appendChild(banner);
-  return banner;
 }
 
 
 /* ══════════════════════════════════════════════════════════
-   COPIE AU PRESSE-PAPIERS — Numéros de téléphone
-   Permet de copier rapidement un numéro ou texte en
-   cliquant sur un élément avec data-copy. Affiche une
-   confirmation visuelle brève.
+   SMOOTH SCROLL
 ══════════════════════════════════════════════════════════ */
-function initCopyToClipboard() {
-  document.querySelectorAll('[data-copy]').forEach(el => {
-    el.style.cursor = 'pointer';
-    el.addEventListener('click', function () {
-      const text = this.dataset.copy;
-      navigator.clipboard.writeText(text).then(() => {
-        const original = this.textContent;
-        this.textContent = '✅ Copié !';
-        this.style.color = '#059669';
-        setTimeout(() => {
-          this.textContent = original;
-          this.style.color = '';
-        }, 2000);
-      }).catch(() => {
-        // Fallback pour les navigateurs sans clipboard API
-        const input = document.createElement('input');
-        input.value = text;
-        document.body.appendChild(input);
-        input.select();
-        document.execCommand('copy');
-        document.body.removeChild(input);
+function initSmoothScroll() {
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      const id  = this.getAttribute('href');
+      if (id === '#') return;
+      const el  = document.querySelector(id);
+      if (!el) return;
+      e.preventDefault();
+      const nav    = document.getElementById('navbar');
+      const offset = nav ? nav.offsetHeight + 16 : 80;
+      window.scrollTo({
+        top: el.getBoundingClientRect().top + window.pageYOffset - offset,
+        behavior: 'smooth',
       });
     });
   });
@@ -213,74 +281,119 @@ function initCopyToClipboard() {
 
 
 /* ══════════════════════════════════════════════════════════
-   UTILITAIRES GLOBAUX
+   TOAST NOTIFICATIONS
 ══════════════════════════════════════════════════════════ */
-
-/**
- * Formate un montant en FCFA
- * @param {number} amount
- * @returns {string}
- */
-function formatFCFA(amount) {
-  return new Intl.NumberFormat('fr-BF', {
-    style: 'currency',
-    currency: 'XOF',
-    minimumFractionDigits: 0,
-  }).format(amount);
-}
-
-/**
- * Formate une date en français
- * @param {string|Date} date
- * @returns {string}
- */
-function formatDateFR(date) {
-  return new Intl.DateTimeFormat('fr-BF', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  }).format(new Date(date));
-}
-
-/**
- * Debounce — limite la fréquence d'appel d'une fonction
- * @param {Function} fn
- * @param {number} delay
- * @returns {Function}
- */
-function debounce(fn, delay = 300) {
-  let timer;
-  return function (...args) {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn.apply(this, args), delay);
-  };
-}
-
-/**
- * Affiche un toast de notification rapide
- * @param {string} message
- * @param {string} type — 'success' | 'error' | 'info'
- */
 function showToast(message, type = 'success') {
   const colors = {
-    success: 'bg-green-600',
-    error:   'bg-red-600',
-    info:    'bg-primary-900',
+    success: '#059669',
+    error:   '#DC2626',
+    info:    '#2563EB',
+    warning: '#D97706',
   };
+
   const toast = document.createElement('div');
-  toast.className = `
-    fixed bottom-24 left-1/2 -translate-x-1/2 z-[9998]
-    ${colors[type] || colors.info} text-white
-    px-6 py-3 rounded-full text-sm font-bold shadow-2xl
-    animate-fade-in whitespace-nowrap
-  `;
+  Object.assign(toast.style, {
+    position: 'fixed',
+    bottom: '6rem',
+    left: '50%',
+    transform: 'translateX(-50%) translateY(10px)',
+    background: colors[type] || colors.success,
+    color: 'white',
+    padding: '0.75rem 1.5rem',
+    borderRadius: '50px',
+    fontSize: '0.875rem',
+    fontWeight: '700',
+    zIndex: '99999',
+    boxShadow: '0 8px 30px rgba(0,0,0,0.25)',
+    whiteSpace: 'nowrap',
+    transition: 'all 0.3s ease',
+  });
   toast.textContent = message;
   document.body.appendChild(toast);
+
+  requestAnimationFrame(() => {
+    toast.style.transform = 'translateX(-50%) translateY(0)';
+    toast.style.opacity   = '1';
+  });
+
   setTimeout(() => {
-    toast.style.opacity    = '0';
-    toast.style.transition = 'opacity 0.4s ease';
-    setTimeout(() => {
-      if (toast.parentNode) toast.parentNode.removeChild(toast);
-    }, 400);
+    toast.style.opacity   = '0';
+    toast.style.transform = 'translateX(-50%) translateY(8px)';
+    setTimeout(() => toast.remove(), 300);
   }, 3500);
 }
+
+
+/* ══════════════════════════════════════════════════════════
+   COPIE PRESSE-PAPIERS
+══════════════════════════════════════════════════════════ */
+function initCopyButtons() {
+  document.querySelectorAll('[data-copy]').forEach(el => {
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', function() {
+      const text = this.dataset.copy;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('✅ Copié !', 'success');
+      }).catch(() => {
+        const input = document.createElement('input');
+        input.value = text;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        input.remove();
+        showToast('✅ Copié !', 'success');
+      });
+    });
+  });
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVE — DÉTECTION TAILLE ÉCRAN
+══════════════════════════════════════════════════════════ */
+function getBreakpoint() {
+  const w = window.innerWidth;
+  if (w < 640)  return 'xs';
+  if (w < 768)  return 'sm';
+  if (w < 1024) return 'md';
+  if (w < 1280) return 'lg';
+  return 'xl';
+}
+
+// Ajouter class au body pour ciblage CSS
+function updateBreakpoint() {
+  const bp = getBreakpoint();
+  ['xs','sm','md','lg','xl'].forEach(c => document.body.classList.remove('bp-' + c));
+  document.body.classList.add('bp-' + bp);
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   INITIALISATION GLOBALE
+══════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function() {
+  // Thème — PREMIER pour éviter le flash
+  loadSavedTheme();
+
+  // Initialiser tous les modules
+  initLoader();
+  initNavbar();
+  initScrollTop();
+  initFlashMessages();
+  initNetworkStatus();
+  initSmoothScroll();
+  initCopyButtons();
+  updateBreakpoint();
+
+  // Resize listener
+  window.addEventListener('resize', updateBreakpoint, { passive: true });
+
+  // Fermer menu mobile sur resize
+  window.addEventListener('resize', () => {
+    if (window.innerWidth >= 1024) {
+      const menu = document.getElementById('mobile-menu');
+      if (menu) menu.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  }, { passive: true });
+});

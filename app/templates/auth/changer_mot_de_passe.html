@@ -1,0 +1,268 @@
+{#
+  ============================================================
+  FICHIER #56 — auth/changer_mot_de_passe.html
+  Page de changement de mot de passe pour tout utilisateur
+  connecté du Centre Al-Bir. L'utilisateur saisit son mot de
+  passe actuel pour vérification puis entre le nouveau mot de
+  passe deux fois pour confirmation. Indicateur de force du
+  mot de passe en temps réel. Accessible depuis tous les portails.
+  ============================================================
+#}
+{% extends "base.html" %}
+{% block title %}Changer mon mot de passe — Centre Al-Bir{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center pt-20 pb-12 px-4"
+     style="background:var(--bg-body);">
+  <div class="w-full max-w-md">
+
+    <!-- En-tête -->
+    <div class="text-center mb-8" data-aos="fade-down">
+      <div class="w-16 h-16 rounded-2xl flex items-center justify-center
+                  text-3xl mx-auto mb-4 shadow-lg"
+           style="background:var(--gradient-hero);">
+        🔑
+      </div>
+      <h1 class="font-serif text-2xl font-bold" style="color:var(--text-heading);">
+        Changer mon mot de passe
+      </h1>
+      <p style="color:var(--text-secondary);font-size:0.875rem;margin-top:0.5rem;">
+        Centre Al-Bir — Sécurité du compte
+      </p>
+    </div>
+
+    <!-- Carte formulaire -->
+    <div class="card-premium p-8" data-aos="fade-up">
+
+      <form method="POST" action="{{ url_for('auth.changer_mot_de_passe') }}"
+            id="pwd-form" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+        <!-- Mot de passe actuel -->
+        <div class="form-group">
+          <label class="form-label">
+            Mot de passe actuel <span style="color:var(--color-danger)">*</span>
+          </label>
+          <div style="position:relative;">
+            <input type="password" name="current_password" id="current_pwd"
+                   required placeholder="Votre mot de passe actuel"
+                   class="form-input" style="padding-right:3rem;" />
+            <button type="button" onclick="togglePwd('current_pwd','eye1')"
+                    style="position:absolute;right:1rem;top:50%;transform:translateY(-50%);
+                           background:none;border:none;cursor:pointer;color:var(--text-muted);">
+              <svg id="eye1" width="18" height="18" fill="none" stroke="currentColor"
+                   stroke-width="2" viewBox="0 0 24 24">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Nouveau mot de passe -->
+        <div class="form-group">
+          <label class="form-label">
+            Nouveau mot de passe <span style="color:var(--color-danger)">*</span>
+          </label>
+          <div style="position:relative;">
+            <input type="password" name="new_password" id="new_pwd"
+                   required placeholder="Minimum 8 caractères"
+                   minlength="8"
+                   oninput="checkStrength(this.value)"
+                   class="form-input" style="padding-right:3rem;" />
+            <button type="button" onclick="togglePwd('new_pwd','eye2')"
+                    style="position:absolute;right:1rem;top:50%;transform:translateY(-50%);
+                           background:none;border:none;cursor:pointer;color:var(--text-muted);">
+              <svg id="eye2" width="18" height="18" fill="none" stroke="currentColor"
+                   stroke-width="2" viewBox="0 0 24 24">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Indicateur de force -->
+          <div style="margin-top:0.625rem;">
+            <div style="display:flex;gap:4px;margin-bottom:4px;">
+              {% for i in range(4) %}
+              <div class="strength-bar"
+                   id="bar{{ i }}"
+                   style="flex:1;height:4px;border-radius:999px;
+                          background:var(--border-color);
+                          transition:background 0.3s ease;">
+              </div>
+              {% endfor %}
+            </div>
+            <p id="strength-label"
+               style="font-size:0.7rem;color:var(--text-muted);font-weight:600;">
+              Saisissez un mot de passe
+            </p>
+          </div>
+        </div>
+
+        <!-- Confirmation nouveau mot de passe -->
+        <div class="form-group">
+          <label class="form-label">
+            Confirmer le nouveau mot de passe <span style="color:var(--color-danger)">*</span>
+          </label>
+          <div style="position:relative;">
+            <input type="password" name="confirm_password" id="confirm_pwd"
+                   required placeholder="Répétez le nouveau mot de passe"
+                   oninput="checkMatch()"
+                   class="form-input" style="padding-right:3rem;" />
+            <button type="button" onclick="togglePwd('confirm_pwd','eye3')"
+                    style="position:absolute;right:1rem;top:50%;transform:translateY(-50%);
+                           background:none;border:none;cursor:pointer;color:var(--text-muted);">
+              <svg id="eye3" width="18" height="18" fill="none" stroke="currentColor"
+                   stroke-width="2" viewBox="0 0 24 24">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+          <p id="match-msg"
+             style="font-size:0.7rem;margin-top:4px;font-weight:600;display:none;">
+          </p>
+        </div>
+
+        <!-- Règles du mot de passe -->
+        <div style="background:var(--bg-section-alt);border-radius:var(--radius-lg);
+                    padding:1rem;margin-bottom:1.5rem;border:1px solid var(--border-color);">
+          <p style="font-size:0.7rem;font-weight:800;color:var(--text-secondary);
+                    text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;">
+            Règles de sécurité
+          </p>
+          <ul style="list-style:none;space-y:0.25rem;">
+            {% for rule_id, rule_text in [
+              ('r-length',  'Au moins 8 caractères'),
+              ('r-upper',   'Au moins une majuscule (A-Z)'),
+              ('r-number',  'Au moins un chiffre (0-9)'),
+              ('r-special', 'Au moins un caractère spécial (@!#...)'),
+            ] %}
+            <li id="{{ rule_id }}"
+                style="display:flex;align-items:center;gap:0.5rem;
+                       font-size:0.75rem;color:var(--text-muted);padding:0.2rem 0;">
+              <span class="rule-icon">○</span>
+              {{ rule_text }}
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <!-- Bouton soumettre -->
+        <button type="submit" id="submit-pwd"
+                class="btn btn-primary w-full btn-lg"
+                style="width:100%;justify-content:center;">
+          🔒 Changer mon mot de passe
+        </button>
+      </form>
+
+      <!-- Lien retour -->
+      <div style="text-align:center;margin-top:1.5rem;">
+        <a href="javascript:history.back()"
+           style="font-size:0.8rem;color:var(--text-muted);
+                  hover:color:var(--text-primary);">
+          ← Retour
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+// ══════════════════════════════════════════════════════════
+// GESTION MOT DE PASSE — Visibilité + Force + Correspondance
+// ══════════════════════════════════════════════════════════
+
+// Basculer visibilité mot de passe
+function togglePwd(inputId, eyeId) {
+  const input = document.getElementById(inputId);
+  const eye   = document.getElementById(eyeId);
+  if (input.type === 'password') {
+    input.type = 'text';
+    eye.innerHTML = `
+      <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+      <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+      <line x1="1" y1="1" x2="23" y2="23"/>`;
+  } else {
+    input.type = 'password';
+    eye.innerHTML = `
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+      <circle cx="12" cy="12" r="3"/>`;
+  }
+}
+
+// Vérifier la force du mot de passe
+function checkStrength(value) {
+  const rules = {
+    'r-length':  value.length >= 8,
+    'r-upper':   /[A-Z]/.test(value),
+    'r-number':  /[0-9]/.test(value),
+    'r-special': /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value),
+  };
+
+  // Mettre à jour les règles
+  Object.entries(rules).forEach(([id, passed]) => {
+    const el   = document.getElementById(id);
+    const icon = el.querySelector('.rule-icon');
+    if (passed) {
+      el.style.color = 'var(--color-success)';
+      icon.textContent = '✓';
+    } else {
+      el.style.color = 'var(--text-muted)';
+      icon.textContent = '○';
+    }
+  });
+
+  // Score
+  const score = Object.values(rules).filter(Boolean).length;
+  const bars  = document.querySelectorAll('.strength-bar');
+  const label = document.getElementById('strength-label');
+
+  const configs = [
+    { color: 'transparent',             text: 'Saisissez un mot de passe', textColor: 'var(--text-muted)' },
+    { color: 'var(--color-danger)',      text: '🔴 Très faible',            textColor: 'var(--color-danger)' },
+    { color: 'var(--color-warning)',     text: '🟠 Faible',                 textColor: 'var(--color-warning)' },
+    { color: 'var(--color-info)',        text: '🔵 Moyen',                  textColor: 'var(--color-info)' },
+    { color: 'var(--color-success)',     text: '🟢 Fort — Excellent !',     textColor: 'var(--color-success)' },
+  ];
+
+  bars.forEach((bar, i) => {
+    bar.style.background = i < score ? configs[score].color : 'var(--border-color)';
+  });
+
+  if (label) {
+    label.textContent  = configs[score].text;
+    label.style.color  = configs[score].textColor;
+  }
+
+  checkMatch();
+}
+
+// Vérifier la correspondance
+function checkMatch() {
+  const newPwd     = document.getElementById('new_pwd').value;
+  const confirmPwd = document.getElementById('confirm_pwd').value;
+  const msg        = document.getElementById('match-msg');
+  const btn        = document.getElementById('submit-pwd');
+
+  if (!confirmPwd) {
+    msg.style.display = 'none';
+    return;
+  }
+
+  msg.style.display = 'block';
+  if (newPwd === confirmPwd) {
+    msg.textContent = '✅ Les mots de passe correspondent';
+    msg.style.color = 'var(--color-success)';
+    btn.disabled    = false;
+  } else {
+    msg.textContent = '❌ Les mots de passe ne correspondent pas';
+    msg.style.color = 'var(--color-danger)';
+    btn.disabled    = true;
+  }
+}
+</script>
+{% endblock %}
