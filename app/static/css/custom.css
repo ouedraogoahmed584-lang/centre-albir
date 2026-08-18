@@ -1749,3 +1749,72 @@ img, video { max-width: 100%; height: auto; }
   will-change: transform;
   transform: translateZ(0);
 }
+
+/* ============================================================
+   FIX SCROLL HORIZONTAL MOBILE — DÉFINITIF
+   Empêche tout déplacement horizontal de la page
+   ============================================================ */
+
+/* Bloquer scroll horizontal sur TOUS les éléments racines */
+html {
+  overflow-x: hidden !important;
+  max-width: 100% !important;
+  position: relative !important;
+}
+
+body {
+  overflow-x: hidden !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  position: relative !important;
+}
+
+/* Empêcher les éléments fixes de déborder */
+#navbar,
+#enroll-banner,
+.float-btn,
+#float-espace,
+#theme-panel {
+  max-width: 100vw !important;
+}
+
+/* Theme panel — ne doit pas créer de scroll */
+#theme-panel {
+  overflow: hidden !important;
+}
+
+/* Tous les containers */
+.container-albir,
+main,
+footer,
+section,
+header {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+/* Images et médias */
+img, video, iframe, svg {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+/* Tables */
+table {
+  display: block !important;
+  overflow-x: auto !important;
+  max-width: 100% !important;
+}
+
+/* Grilles ne doivent pas déborder */
+.gallery-grid,
+.programs-grid,
+.stats-grid {
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+/* Empêcher les flex items de déborder */
+.flex, [class*="flex"] {
+  min-width: 0 !important;
+}
