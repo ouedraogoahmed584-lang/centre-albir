@@ -1,0 +1,153 @@
+{#
+  ============================================================
+  FICHIER #37 — public/programme_detail.html
+  Page de détail complet d'un programme spécifique du Centre
+  Al-Bir. Affiche le nom complet en français et arabe, la
+  description approfondie, les objectifs pédagogiques, les
+  informations pratiques (langue, âge, durée) et un bouton
+  d'inscription directe. Reliée depuis toutes les cartes programme.
+  ============================================================
+#}
+{% extends "base.html" %}
+{% block title %}{{ program.name_fr }} — Centre Al-Bir{% endblock %}
+{% block description %}{{ program.description_fr[:160] if program.description_fr else 'Programme du Centre Al-Bir' }}{% endblock %}
+
+{% block content %}
+<div class="pt-20 bg-ivory min-h-screen">
+
+  <!-- ── HERO PROGRAMME ─────────────────────────────── -->
+  <div class="relative py-20 overflow-hidden"
+       style="background:linear-gradient(135deg,#022C22 0%,#064E3B 70%,#065F46 100%);">
+    <div class="pattern-overlay absolute inset-0 opacity-10"></div>
+    <div class="relative z-10 max-w-4xl mx-auto px-4">
+      <a href="{{ url_for('public.programmes') }}"
+         class="inline-flex items-center gap-2 text-white/60 hover:text-yellow-400
+                transition-colors text-sm mb-8">
+        ← Tous les programmes
+      </a>
+      <div class="flex items-start gap-6">
+        <div class="w-20 h-20 rounded-3xl border-2 border-yellow-400/30 flex items-center
+                    justify-center text-4xl flex-shrink-0 bg-white/10 backdrop-blur-sm">
+          {{ program.icon }}
+        </div>
+        <div>
+          <span class="inline-block text-xs font-bold px-3 py-1.5 rounded-full mb-3
+                       {% if program.department == 'islamic' %}bg-green-500/20 text-green-300
+                       {% else %}bg-blue-500/20 text-blue-300{% endif %}">
+            {% if program.department == 'islamic' %}🕌 Département Islamique{% else %}🇫🇷 Département Français{% endif %}
+          </span>
+          <h1 class="font-serif text-3xl md:text-4xl font-bold text-white mb-2">
+            {{ program.name_fr }}
+          </h1>
+          {% if program.name_ar %}
+          <p class="font-arabic text-yellow-300 text-xl text-right">{{ program.name_ar }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="absolute bottom-0 left-0 right-0">
+      <svg viewBox="0 0 1440 60" fill="none"><path d="M0 60L1440 60L1440 15C1200 45 960 60 720 52C480 44 240 15 0 30V60Z" fill="#FAF7F0"/></svg>
+    </div>
+  </div>
+
+  <!-- ── CONTENU ─────────────────────────────────────── -->
+  <div class="max-w-5xl mx-auto px-4 py-16">
+    <div class="grid lg:grid-cols-3 gap-8">
+
+      <!-- Colonne principale -->
+      <div class="lg:col-span-2 space-y-8">
+
+        <!-- Description -->
+        {% if program.description_fr %}
+        <div class="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm">
+          <h2 class="font-serif text-xl font-bold text-primary-900 mb-4 flex items-center gap-2">
+            <span class="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center text-sm">📖</span>
+            Description du programme
+          </h2>
+          <p class="text-gray-600 leading-relaxed">{{ program.description_fr }}</p>
+          {% if program.description_ar %}
+          <div class="mt-5 pt-5 border-t border-gray-100">
+            <p class="font-arabic text-gray-600 text-right leading-loose text-lg">{{ program.description_ar }}</p>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Objectifs -->
+        {% if program.objectives_fr %}
+        <div class="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm">
+          <h2 class="font-serif text-xl font-bold text-primary-900 mb-5 flex items-center gap-2">
+            <span class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center text-sm">🎯</span>
+            Objectifs pédagogiques
+          </h2>
+          <ul class="space-y-3">
+            {% for obj in program.objectives_fr.split('\n') if obj.strip() %}
+            <li class="flex items-start gap-3">
+              <span class="w-5 h-5 bg-primary-100 rounded-full flex items-center justify-center
+                           text-primary-700 font-bold text-xs flex-shrink-0 mt-0.5">✓</span>
+              <span class="text-gray-600 text-sm">{{ obj.strip() }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+      </div>
+
+      <!-- Colonne infos + CTA -->
+      <div class="space-y-5">
+
+        <!-- Infos pratiques -->
+        <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+          <h3 class="font-bold text-gray-900 font-serif mb-4">Informations pratiques</h3>
+          <div class="space-y-4">
+            {% for icon, label, value in [
+              ('🗣️', 'Langue',        program.language or 'Non défini'),
+              ('👥', 'Tranche d\'âge', (program.min_age|string ~ ' à ' ~ program.max_age|string ~ ' ans') if program.min_age and program.max_age else 'Non défini'),
+              ('📅', 'Durée',          program.duration or 'Octobre – Juillet'),
+              ('💰', 'Frais annuels',  site.fee),
+              ('📍', 'Lieu',           site.quartier ~ ', ' ~ site.city),
+            ] %}
+            <div class="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
+              <span class="text-xl flex-shrink-0">{{ icon }}</span>
+              <div>
+                <p class="text-xs text-gray-400 font-semibold">{{ label }}</p>
+                <p class="text-gray-800 font-semibold text-sm">{{ value }}</p>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Bouton inscription -->
+        <a href="{{ url_for('public.admissions') }}"
+           class="block text-center py-4 bg-yellow-400 hover:bg-yellow-300 text-primary-900
+                  font-bold rounded-2xl transition-all hover:scale-105 shadow-xl text-sm">
+          ✍️ S'inscrire à ce programme
+        </a>
+
+        <!-- Contact -->
+        <div class="bg-primary-900 rounded-2xl p-5 text-center">
+          <p class="text-white/80 text-xs mb-3">Des questions sur ce programme ?</p>
+          <a href="https://wa.me/{{ site.phone2_raw }}" target="_blank"
+             class="inline-flex items-center gap-2 px-5 py-2.5 bg-green-500 hover:bg-green-400
+                    text-white font-bold rounded-xl text-sm transition-all">
+            💬 WhatsApp
+          </a>
+        </div>
+
+        <!-- Autres programmes -->
+        <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+          <h3 class="font-bold text-gray-700 text-sm mb-3">Voir aussi</h3>
+          <a href="{{ url_for('public.programmes') }}"
+             class="text-primary-700 font-semibold text-sm hover:text-yellow-600
+                    transition-colors flex items-center gap-2">
+            ← Tous les programmes
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

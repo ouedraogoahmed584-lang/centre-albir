@@ -1,0 +1,176 @@
+{#
+  ============================================================
+  FICHIER #31 — admin/parametres.html
+  Page de configuration générale du site Centre Al-Bir.
+  Permet à l'administrateur de remplacer le logo du site,
+  de consulter les informations de contact actuelles, et de
+  gérer les paramètres d'apparence visibles sur toutes les
+  pages. Le logo uploadé remplace automatiquement l'existant.
+  ============================================================
+#}
+{% extends "base.html" %}
+{% block title %}Paramètres du site — Admin Al-Bir{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 pt-16 flex">
+
+  <aside class="fixed left-0 top-16 h-screen w-64 bg-primary-950 text-white z-40 overflow-y-auto shadow-2xl">
+    <div class="p-6 border-b border-white/10">
+      <p class="text-white font-bold text-sm">{{ current_user.full_name }}</p>
+      <p class="text-yellow-400 text-xs">Administrateur</p>
+    </div>
+    <nav class="p-4 space-y-1">
+      {% for ep, icon, label in [
+        ('admin.dashboard',   '📊','Tableau de bord'),
+        ('admin.inscriptions','📝','Inscriptions'),
+        ('admin.eleves',      '👥','Élèves'),
+        ('admin.programmes',  '📚','Programmes'),
+        ('admin.actualites',  '📰','Actualités'),
+        ('admin.galerie',     '🖼️','Galerie'),
+        ('admin.publicites',  '📢','Publicités'),
+        ('admin.parametres',  '⚙️','Paramètres'),
+      ] %}
+      <a href="{{ url_for(ep) }}"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
+                {% if request.endpoint == ep %}bg-yellow-400 text-primary-900 font-bold
+                {% else %}text-white/70 hover:bg-white/10 hover:text-white{% endif %}">
+        <span>{{ icon }}</span> {{ label }}
+      </a>
+      {% endfor %}
+    </nav>
+  </aside>
+
+  <main class="ml-64 flex-1 p-8 max-w-4xl">
+
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold font-serif text-gray-900">Paramètres du site</h1>
+      <p class="text-gray-500 text-sm mt-1">Configurez l'apparence et les informations du Centre Al-Bir</p>
+    </div>
+
+    <div class="space-y-6">
+
+      <!-- LOGO -->
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <h2 class="font-bold text-gray-800 font-serif text-lg mb-5 flex items-center gap-2">
+          <span class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">🖼️</span>
+          Logo du site
+        </h2>
+
+        <!-- Aperçu logo actuel -->
+        <div class="flex items-center gap-6 mb-6 p-5 bg-primary-950 rounded-2xl">
+          <div class="w-20 h-20 rounded-2xl overflow-hidden border-2 border-yellow-400/50 flex-shrink-0">
+            <img src="{{ url_for('static', filename='images/logo.png') }}"
+                 onerror="this.parentElement.innerHTML='<div class=\'w-full h-full bg-yellow-400 flex items-center justify-center font-bold text-green-900 text-xl\'>AB</div>'"
+                 alt="Logo actuel" class="w-full h-full object-cover" />
+          </div>
+          <div>
+            <p class="text-white font-bold">Logo actuel</p>
+            <p class="text-white/50 text-sm">Centre Al-Bir</p>
+            <p class="text-yellow-400 text-xs mt-1 font-arabic">مركز البر</p>
+          </div>
+        </div>
+
+        <!-- Formulaire upload logo -->
+        <form method="POST" enctype="multipart/form-data"
+              action="{{ url_for('admin.parametres') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <div class="border-2 border-dashed border-gray-200 rounded-2xl p-6 text-center hover:border-primary-400 transition-colors mb-4"
+               onclick="document.getElementById('logo-upload').click()">
+            <input type="file" name="logo" id="logo-upload" accept="image/*"
+                   class="hidden" onchange="previewLogo(this)" />
+            <div id="logo-preview" class="hidden mb-3">
+              <img id="logo-preview-img" src="#" alt="Nouveau logo"
+                   class="w-20 h-20 mx-auto rounded-2xl object-cover shadow-md" />
+            </div>
+            <p class="text-4xl mb-2" id="logo-icon">🖼️</p>
+            <p class="text-gray-600 font-medium text-sm">Cliquer pour choisir un nouveau logo</p>
+            <p class="text-gray-400 text-xs mt-1">PNG, JPG, SVG — Format carré recommandé (512×512px)</p>
+          </div>
+          <button type="submit"
+                  class="w-full py-3 bg-primary-900 hover:bg-primary-800 text-white font-bold rounded-xl transition-all hover:scale-105 text-sm shadow-lg">
+            📤 Mettre à jour le logo
+          </button>
+        </form>
+      </div>
+
+      <!-- INFOS CENTRE (lecture seule) -->
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <h2 class="font-bold text-gray-800 font-serif text-lg mb-5 flex items-center gap-2">
+          <span class="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center">ℹ️</span>
+          Informations du centre
+          <span class="text-xs text-gray-400 font-normal ml-2">(modifiables dans config.py)</span>
+        </h2>
+        <div class="grid md:grid-cols-2 gap-4">
+          {% for label, value in [
+            ('Nom du centre',    site.full_name),
+            ('Directeur',        site.director),
+            ('Téléphone 1',      site.phone1),
+            ('Téléphone 2',      site.phone2),
+            ('Email',            site.email),
+            ('Adresse',          site.address),
+            ('Horaires',         site.hours),
+            ('Année scolaire',   site.school_year),
+            ('Frais annuels',    site.fee),
+            ('Tranches d\'âge',  site.age_range),
+          ] %}
+          <div class="bg-gray-50 rounded-xl p-4">
+            <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1">{{ label }}</p>
+            <p class="text-gray-800 text-sm font-medium">{{ value }}</p>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="mt-4 p-4 bg-yellow-50 rounded-xl border border-yellow-200">
+          <p class="text-yellow-700 text-xs font-semibold">
+            ⚠️ Pour modifier ces informations, éditez le fichier <code class="bg-yellow-200 px-1.5 py-0.5 rounded font-mono">app/utils/helpers.py</code>
+            puis relancez le serveur.
+          </p>
+        </div>
+      </div>
+
+      <!-- STATISTIQUES SYSTÈME -->
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <h2 class="font-bold text-gray-800 font-serif text-lg mb-5 flex items-center gap-2">
+          <span class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">📊</span>
+          Statistiques affichées sur le site
+        </h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {% for label, value, icon in [
+            ('Élèves', site.stats.students,     '👥'),
+            ('Enseignants', site.stats.teachers, '🎓'),
+            ('Taux réussite', site.stats.success_rate, '📈'),
+            ("D'expérience", '3 ans',            '⭐'),
+          ] %}
+          <div class="bg-primary-50 rounded-xl p-4 text-center border border-primary-100">
+            <p class="text-2xl mb-1">{{ icon }}</p>
+            <p class="text-xl font-bold text-primary-900">{{ value }}</p>
+            <p class="text-xs text-gray-500 mt-1">{{ label }}</p>
+          </div>
+          {% endfor %}
+        </div>
+        <p class="text-xs text-gray-400 mt-4">
+          Ces chiffres sont affichés sur la page d'accueil du site.
+          Modifiez-les dans <code class="bg-gray-100 px-1.5 py-0.5 rounded font-mono">app/utils/helpers.py</code>.
+        </p>
+      </div>
+
+    </div>
+  </main>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+  // Prévisualisation logo
+  function previewLogo(input) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('logo-preview-img').src = e.target.result;
+        document.getElementById('logo-preview').classList.remove('hidden');
+        document.getElementById('logo-icon').classList.add('hidden');
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+</script>
+{% endblock %}

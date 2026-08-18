@@ -1,0 +1,169 @@
+{#
+  ============================================================
+  FICHIER #29 — admin/publicites.html
+  Interface de gestion complète des publicités et annonces
+  affichées sur le site public. L'administrateur peut créer,
+  activer/désactiver et supprimer des publicités qui s'affichent
+  dans différentes zones du site (hero, bannières, entre sections,
+  sidebar). Chaque publicité est positionnée précisément.
+  ============================================================
+#}
+{% extends "base.html" %}
+{% block title %}Gestion des Publicités — Admin Al-Bir{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 pt-16 flex">
+
+  <aside class="fixed left-0 top-16 h-screen w-64 bg-primary-950 text-white z-40 overflow-y-auto shadow-2xl">
+    <div class="p-6 border-b border-white/10">
+      <p class="text-white font-bold text-sm">{{ current_user.full_name }}</p>
+      <p class="text-yellow-400 text-xs">Administrateur</p>
+    </div>
+    <nav class="p-4 space-y-1">
+      {% for ep, icon, label in [
+        ('admin.dashboard',   '📊','Tableau de bord'),
+        ('admin.inscriptions','📝','Inscriptions'),
+        ('admin.eleves',      '👥','Élèves'),
+        ('admin.programmes',  '📚','Programmes'),
+        ('admin.actualites',  '📰','Actualités'),
+        ('admin.galerie',     '🖼️','Galerie'),
+        ('admin.publicites',  '📢','Publicités'),
+        ('admin.parametres',  '⚙️','Paramètres'),
+      ] %}
+      <a href="{{ url_for(ep) }}"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
+                {% if request.endpoint == ep %}bg-yellow-400 text-primary-900 font-bold
+                {% else %}text-white/70 hover:bg-white/10 hover:text-white{% endif %}">
+        <span>{{ icon }}</span> {{ label }}
+      </a>
+      {% endfor %}
+    </nav>
+  </aside>
+
+  <main class="ml-64 flex-1 p-8">
+
+    <!-- En-tête -->
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-2xl font-bold font-serif text-gray-900">Gestion des Publicités</h1>
+        <p class="text-gray-500 text-sm mt-1">
+          Gérez les annonces et publicités affichées sur le site public
+        </p>
+      </div>
+      <a href="{{ url_for('admin.nouvelle_publicite') }}"
+         class="flex items-center gap-2 px-5 py-3 bg-yellow-400 text-primary-900 font-bold rounded-xl text-sm hover:bg-yellow-300 transition-all shadow-sm hover:scale-105">
+        + Nouvelle publicité
+      </a>
+    </div>
+
+    <!-- Explication des positions -->
+    <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5 mb-6">
+      <h3 class="font-bold text-blue-800 text-sm mb-3">📌 Zones de placement disponibles sur le site :</h3>
+      <div class="grid md:grid-cols-3 lg:grid-cols-5 gap-3">
+        {% for pos, desc, color in [
+          ('banner_top',         'Bandeau haut de page',      'bg-red-100 text-red-700'),
+          ('hero',               'Section Hero (accueil)',     'bg-purple-100 text-purple-700'),
+          ('between_sections',   'Entre les sections',         'bg-yellow-100 text-yellow-700'),
+          ('sidebar',            'Barre latérale',             'bg-green-100 text-green-700'),
+          ('banner_bottom',      'Bandeau bas de page',        'bg-orange-100 text-orange-700'),
+        ] %}
+        <div class="text-center {{ color }} rounded-xl px-3 py-2">
+          <p class="font-bold text-xs">{{ pos }}</p>
+          <p class="text-xs mt-0.5 opacity-80">{{ desc }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Liste des publicités -->
+    {% if ads %}
+    <div class="space-y-4">
+      {% for ad in ads %}
+      <div class="bg-white rounded-2xl border-2 border-gray-100 shadow-sm overflow-hidden hover:border-yellow-300 transition-all">
+        <div class="flex items-stretch">
+
+          <!-- Aperçu image -->
+          <div class="w-36 flex-shrink-0 bg-gray-100 flex items-center justify-center overflow-hidden">
+            {% if ad.image_url %}
+            <img src="{{ ad.image_url }}" alt="{{ ad.title }}"
+                 class="w-full h-full object-cover" style="max-height:100px;" />
+            {% else %}
+            <span class="text-4xl opacity-30">🖼️</span>
+            {% endif %}
+          </div>
+
+          <!-- Contenu -->
+          <div class="flex-1 p-5">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <div class="flex items-center gap-3 mb-2">
+                  <h3 class="font-bold text-gray-900">{{ ad.title }}</h3>
+                  <!-- Statut actif/inactif -->
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold
+                               {% if ad.is_active %}bg-green-100 text-green-700{% else %}bg-gray-100 text-gray-500{% endif %}">
+                    {% if ad.is_active %}● Actif{% else %}○ Inactif{% endif %}
+                  </span>
+                </div>
+                <div class="flex flex-wrap gap-2 mb-2">
+                  <!-- Position badge -->
+                  <span class="text-xs font-semibold bg-primary-100 text-primary-700 px-2.5 py-1 rounded-lg">
+                    📌 {{ ad.position }}
+                  </span>
+                  {% if ad.link_url %}
+                  <span class="text-xs text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg truncate max-w-xs">
+                    🔗 {{ ad.link_url[:40] ~ '...' if ad.link_url|length > 40 else ad.link_url }}
+                  </span>
+                  {% endif %}
+                </div>
+                {% if ad.content %}
+                <p class="text-gray-500 text-xs">{{ ad.content[:100] ~ '...' if ad.content|length > 100 else ad.content }}</p>
+                {% endif %}
+              </div>
+
+              <!-- Actions -->
+              <div class="flex items-center gap-2 flex-shrink-0">
+                <!-- Toggle actif/inactif -->
+                <form method="POST" action="{{ url_for('admin.toggle_publicite', id=ad.id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                  <button type="submit"
+                          class="px-3 py-2 rounded-xl text-xs font-bold transition-all
+                                 {% if ad.is_active %}
+                                   bg-orange-100 text-orange-700 hover:bg-orange-200
+                                 {% else %}
+                                   bg-green-100 text-green-700 hover:bg-green-200
+                                 {% endif %}">
+                    {% if ad.is_active %}⏸ Désactiver{% else %}▶ Activer{% endif %}
+                  </button>
+                </form>
+
+                <!-- Supprimer -->
+                <form method="POST" action="{{ url_for('admin.supprimer_publicite', id=ad.id) }}"
+                      onsubmit="return confirm('Confirmer la suppression de cette publicité ?')">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                  <button type="submit"
+                          class="px-3 py-2 rounded-xl text-xs font-bold bg-red-100 text-red-600 hover:bg-red-200 transition-all">
+                    🗑 Supprimer
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-2xl border border-dashed border-gray-200 p-16 text-center">
+      <p class="text-6xl mb-4">📢</p>
+      <h3 class="font-serif text-xl font-bold text-gray-700 mb-2">Aucune publicité</h3>
+      <p class="text-gray-500 text-sm mb-6">Commencez par créer votre première annonce ou publicité.</p>
+      <a href="{{ url_for('admin.nouvelle_publicite') }}"
+         class="inline-flex items-center gap-2 px-6 py-3 bg-primary-900 text-white font-bold rounded-xl hover:bg-primary-800 transition-all">
+        + Créer une publicité
+      </a>
+    </div>
+    {% endif %}
+
+  </main>
+</div>
+{% endblock %}

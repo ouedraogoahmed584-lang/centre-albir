@@ -5,6 +5,20 @@ from app.models.gallery import Gallery
 from app.models.event import Event
 from app import db
 
+from flask import Blueprint, render_template, abort, request, redirect, url_for, flash
+from app.models.program import Program
+from app.models.article import Article
+from app.models.gallery import Gallery
+from app.models.event import Event
+from app.models.application import Application
+from app import db
+
+
+
+
+
+
+
 public_bp = Blueprint('public', __name__)
 
 
@@ -77,3 +91,58 @@ def not_found(e):
 @public_bp.app_errorhandler(500)
 def server_error(e):
     return render_template('errors/500.html'), 500
+
+
+@public_bp.route('/admissions', methods=['POST'])
+def admissions_post():
+    """Traite la soumission du formulaire d'inscription"""
+    import os, random, string
+    from werkzeug.utils import secure_filename
+    from app.utils.helpers import allowed_file
+    from flask import current_app
+
+    app_obj = Application()
+
+    # Infos parent
+    app_obj.parent_name     = request.form.get('parent_name', '').strip()
+    app_obj.parent_phone    = request.form.get('parent_phone', '').strip()
+    app_obj.parent_whatsapp = request.form.get('parent_whatsapp', '').strip()
+    app_obj.parent_email    = request.form.get('parent_email', '').strip()
+
+    # Infos élève
+    app_obj.student_name  = request.form.get('student_name', '').strip()
+    age_val = request.form.get('student_age', '0')
+    app_obj.student_age   = int(age_val) if age_val.isdigit() else 0
+    app_obj.student_level = request.form.get('student_level', '').strip()
+    app_obj.motivation    = request.form.get('motivation', '').strip()
+
+    prog_id = request.form.get('program_id')
+    if prog_id and prog_id.isdigit():
+        app_obj.program_id = int(prog_id)
+
+    # Référence unique
+    chars = string.ascii_uppercase + string.digits
+    app_obj.reference = 'ALB-' + ''.join(random.choices(chars, k=8))
+
+    # Upload documents
+    upload_folder = os.path.join(current_app.root_path, 'static', 'images', 'uploads')
+    for field, attr in [
+        ('doc_bulletin',    'doc_bulletin_url'),
+        ('doc_certificate', 'doc_certificate_url'),
+        ('doc_photo',       'doc_photo_url'),
+    ]:
+        if field in request.files:
+            file = request.files[field]
+            if file and file.filename and allowed_file(file.filename):
+                from datetime import datetime
+                filename  = secure_filename(file.filename)
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_')
+                filename  = timestamp + filename
+                file.save(os.path.join(upload_folder, filename))
+                setattr(app_obj, attr, '/static/images/uploads/' + filename)
+
+    db.session.add(app_obj)
+    db.session.commit()
+
+    flash(f'Votre demande a bien été envoyée ! Référence : {app_obj.reference}. Nous vous contacterons prochainement.', 'success')
+    return redirect(url_for('public.admissions'))

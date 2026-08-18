@@ -1,0 +1,333 @@
+{#
+  ============================================================
+  FICHIER #26 — admin/dashboard.html
+  Dashboard principal de l'administration du Centre Al-Bir.
+  Affiche les statistiques globales, les dernières inscriptions
+  reçues, les élèves récemment ajoutés, et les raccourcis vers
+  toutes les sections de gestion. Accessible uniquement aux
+  utilisateurs ayant le rôle 'admin'.
+  ============================================================
+#}
+{% extends "base.html" %}
+
+{% block title %}Tableau de bord — Administration Al-Bir{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 pt-16">
+
+  <!-- ── SIDEBAR + CONTENU ─────────────────────────────── -->
+  <div class="flex">
+
+    <!-- SIDEBAR -->
+    <aside class="fixed left-0 top-16 h-screen w-64 bg-primary-950 text-white flex flex-col z-40 shadow-2xl overflow-y-auto">
+
+      <!-- En-tête sidebar -->
+      <div class="p-6 border-b border-white/10">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center flex-shrink-0">
+            <span class="text-primary-900 font-bold text-sm">AD</span>
+          </div>
+          <div>
+            <p class="text-white font-bold text-sm">{{ current_user.full_name }}</p>
+            <p class="text-yellow-400 text-xs">Administrateur</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation sidebar -->
+      <nav class="flex-1 p-4 space-y-1">
+
+        <!-- Tableau de bord -->
+        <a href="{{ url_for('admin.dashboard') }}"
+           class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
+                  {% if request.endpoint == 'admin.dashboard' %}
+                    bg-yellow-400 text-primary-900 font-bold
+                  {% else %}
+                    text-white/70 hover:bg-white/10 hover:text-white
+                  {% endif %}">
+          <span class="text-lg">📊</span>
+          Tableau de bord
+        </a>
+
+        <!-- Séparateur -->
+        <div class="pt-3 pb-1">
+          <p class="text-white/30 text-xs uppercase tracking-widest px-4 font-semibold">Gestion</p>
+        </div>
+
+        {% set nav_admin = [
+          ('admin.inscriptions',  '📝', 'Inscriptions',   stats.pending_applications ~ ' en attente'),
+          ('admin.eleves',        '👥', 'Élèves',          stats.total_students ~ ' actifs'),
+          ('admin.enseignants',   '🎓', 'Enseignants',     stats.total_teachers ~ ' membres'),
+          ('admin.programmes',    '📚', 'Programmes',      ''),
+          ('admin.paiements',     '💰', 'Paiements',       ''),
+        ] %}
+        {% for endpoint, icon, label, badge in nav_admin %}
+        <a href="{{ url_for(endpoint) }}"
+           class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all group
+                  {% if request.endpoint == endpoint %}
+                    bg-white/15 text-white
+                  {% else %}
+                    text-white/70 hover:bg-white/10 hover:text-white
+                  {% endif %}">
+          <span class="text-lg">{{ icon }}</span>
+          <span class="flex-1">{{ label }}</span>
+          {% if badge %}
+          <span class="bg-yellow-400/20 text-yellow-400 text-xs px-2 py-0.5 rounded-full">{{ badge }}</span>
+          {% endif %}
+        </a>
+        {% endfor %}
+
+        <!-- Séparateur -->
+        <div class="pt-3 pb-1">
+          <p class="text-white/30 text-xs uppercase tracking-widest px-4 font-semibold">Contenu</p>
+        </div>
+
+        {% set nav_content = [
+          ('admin.actualites',   '📰', 'Actualités'),
+          ('admin.galerie',      '🖼️', 'Galerie'),
+          ('admin.publicites',   '📢', 'Publicités'),
+          ('admin.evenements',   '📅', 'Événements'),
+        ] %}
+        {% for endpoint, icon, label in nav_content %}
+        <a href="{{ url_for(endpoint) }}"
+           class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
+                  {% if request.endpoint == endpoint %}bg-white/15 text-white
+                  {% else %}text-white/70 hover:bg-white/10 hover:text-white{% endif %}">
+          <span class="text-lg">{{ icon }}</span>
+          <span>{{ label }}</span>
+        </a>
+        {% endfor %}
+
+        <!-- Séparateur -->
+        <div class="pt-3 pb-1">
+          <p class="text-white/30 text-xs uppercase tracking-widest px-4 font-semibold">Système</p>
+        </div>
+
+        <a href="{{ url_for('admin.utilisateurs') }}"
+           class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white transition-all">
+          <span class="text-lg">👤</span> Utilisateurs
+        </a>
+
+        <a href="{{ url_for('admin.parametres') }}"
+           class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white transition-all">
+          <span class="text-lg">⚙️</span> Paramètres
+        </a>
+      </nav>
+
+      <!-- Footer sidebar -->
+      <div class="p-4 border-t border-white/10">
+        <a href="{{ url_for('public.accueil') }}" target="_blank"
+           class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-all text-sm mb-2">
+          <span>🌐</span> Voir le site
+        </a>
+        <a href="{{ url_for('auth.deconnexion') }}"
+           class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-red-400 hover:bg-red-500/20 transition-all text-sm">
+          <span>🚪</span> Déconnexion
+        </a>
+      </div>
+    </aside>
+
+    <!-- CONTENU PRINCIPAL -->
+    <main class="ml-64 flex-1 p-8 min-h-screen">
+
+      <!-- En-tête page -->
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h1 class="text-2xl font-bold font-serif text-gray-900">Tableau de bord</h1>
+          <p class="text-gray-500 text-sm mt-1">
+            Bienvenue, {{ current_user.full_name }} —
+            <span id="current-date" class="text-primary-700 font-medium"></span>
+          </p>
+        </div>
+        <div class="flex gap-3">
+          <a href="{{ url_for('admin.inscriptions') }}?status=pending"
+             class="flex items-center gap-2 px-4 py-2 bg-yellow-400 text-primary-900 font-bold rounded-xl text-sm hover:bg-yellow-300 transition-all shadow-sm">
+            📝 Nouvelles inscriptions
+            {% if stats.pending_applications > 0 %}
+            <span class="bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+              {{ stats.pending_applications }}
+            </span>
+            {% endif %}
+          </a>
+          <a href="{{ url_for('admin.nouvel_article') }}"
+             class="flex items-center gap-2 px-4 py-2 bg-primary-900 text-white font-semibold rounded-xl text-sm hover:bg-primary-800 transition-all shadow-sm">
+            ✍️ Rédiger
+          </a>
+        </div>
+      </div>
+
+      <!-- STATS CARTES -->
+      <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+        {% set stat_cards = [
+          ('👥', stats.total_students,       'Élèves actifs',       'bg-green-50 border-green-200 text-green-700',   'admin.eleves'),
+          ('🎓', stats.total_teachers,       'Enseignants',         'bg-blue-50 border-blue-200 text-blue-700',     'admin.enseignants'),
+          ('📝', stats.total_applications,   'Demandes totales',    'bg-purple-50 border-purple-200 text-purple-700','admin.inscriptions'),
+          ('⏳', stats.pending_applications, 'En attente',          'bg-yellow-50 border-yellow-200 text-yellow-700','admin.inscriptions'),
+          ('📰', stats.total_articles,       'Articles',            'bg-orange-50 border-orange-200 text-orange-700','admin.actualites'),
+          ('📢', stats.active_ads,           'Publicités actives',  'bg-pink-50 border-pink-200 text-pink-700',     'admin.publicites'),
+        ] %}
+        {% for icon, value, label, style, endpoint in stat_cards %}
+        <a href="{{ url_for(endpoint) }}"
+           class="group block p-5 bg-white rounded-2xl border-2 {{ style }} hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+          <div class="text-2xl mb-3">{{ icon }}</div>
+          <div class="text-2xl font-bold text-gray-900 mb-1">{{ value }}</div>
+          <div class="text-xs font-medium text-gray-500">{{ label }}</div>
+        </a>
+        {% endfor %}
+      </div>
+
+      <!-- GRILLE PRINCIPALE -->
+      <div class="grid lg:grid-cols-2 gap-6">
+
+        <!-- Dernières inscriptions -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div class="flex items-center justify-between p-6 border-b border-gray-50">
+            <h2 class="font-bold text-gray-900 font-serif">Dernières inscriptions</h2>
+            <a href="{{ url_for('admin.inscriptions') }}"
+               class="text-xs text-primary-700 font-semibold hover:text-yellow-600 transition-colors">
+              Voir tout →
+            </a>
+          </div>
+          <div class="divide-y divide-gray-50">
+            {% if recent_applications %}
+              {% for app in recent_applications %}
+              <a href="{{ url_for('admin.inscription_detail', id=app.id) }}"
+                 class="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors group">
+                <!-- Avatar initiales -->
+                <div class="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-primary-800 text-sm">
+                  {{ app.student_name[0].upper() if app.student_name else '?' }}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="font-semibold text-gray-800 text-sm truncate group-hover:text-primary-700 transition-colors">
+                    {{ app.student_name }}
+                  </p>
+                  <p class="text-gray-400 text-xs truncate">{{ app.parent_name }} · {{ app.submitted_at.strftime('%d/%m/%Y') }}</p>
+                </div>
+                <!-- Badge statut -->
+                <span class="flex-shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold
+                  {% if app.status == 'pending' %}bg-gray-100 text-gray-600
+                  {% elif app.status == 'accepted' %}bg-green-100 text-green-700
+                  {% elif app.status == 'rejected' %}bg-red-100 text-red-600
+                  {% elif app.status == 'enrolled' %}bg-emerald-100 text-emerald-700
+                  {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                  {{ app.status_label }}
+                </span>
+              </a>
+              {% endfor %}
+            {% else %}
+            <div class="p-8 text-center text-gray-400">
+              <p class="text-4xl mb-3">📋</p>
+              <p class="text-sm">Aucune inscription pour le moment.</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Derniers élèves inscrits -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div class="flex items-center justify-between p-6 border-b border-gray-50">
+            <h2 class="font-bold text-gray-900 font-serif">Élèves récents</h2>
+            <a href="{{ url_for('admin.eleves') }}"
+               class="text-xs text-primary-700 font-semibold hover:text-yellow-600 transition-colors">
+              Voir tout →
+            </a>
+          </div>
+          <div class="divide-y divide-gray-50">
+            {% if recent_students %}
+              {% for student in recent_students %}
+              <div class="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors">
+                <div class="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  {% if student.photo_url %}
+                  <img src="{{ student.photo_url }}" class="w-full h-full object-cover rounded-xl" alt="Photo" />
+                  {% else %}
+                  <span class="font-bold text-yellow-700 text-sm">{{ student.full_name[0].upper() if student.full_name else '?' }}</span>
+                  {% endif %}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="font-semibold text-gray-800 text-sm truncate">{{ student.full_name }}</p>
+                  <p class="text-gray-400 text-xs">
+                    {% if student.program %}{{ student.program.name_fr }}{% else %}Programme non défini{% endif %}
+                  </p>
+                </div>
+                <span class="text-xs text-gray-400">{{ student.created_at.strftime('%d/%m') }}</span>
+              </div>
+              {% endfor %}
+            {% else %}
+            <div class="p-8 text-center text-gray-400">
+              <p class="text-4xl mb-3">👥</p>
+              <p class="text-sm">Aucun élève enregistré.</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Accès rapides -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <h2 class="font-bold text-gray-900 font-serif mb-5">Actions rapides</h2>
+          <div class="grid grid-cols-2 gap-3">
+            {% for icon, label, endpoint in [
+              ('📢', 'Nouvelle pub',       'admin.nouvelle_publicite'),
+              ('📰', 'Nouvel article',     'admin.nouvel_article'),
+              ('📚', 'Nouveau programme',  'admin.nouveau_programme'),
+              ('🖼️', 'Ajouter photo',      'admin.galerie'),
+              ('⚙️', 'Paramètres',         'admin.parametres'),
+              ('👤', 'Utilisateurs',       'admin.utilisateurs'),
+            ] %}
+            <a href="{{ url_for(endpoint) }}"
+               class="flex items-center gap-3 p-4 bg-gray-50 hover:bg-primary-50 rounded-xl border border-gray-100 hover:border-primary-200 transition-all group">
+              <span class="text-xl">{{ icon }}</span>
+              <span class="text-sm font-medium text-gray-700 group-hover:text-primary-800">{{ label }}</span>
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Infos centre -->
+        <div class="bg-gradient-to-br from-primary-900 to-primary-950 rounded-2xl p-6 text-white relative overflow-hidden">
+          <div class="pattern-overlay absolute inset-0 opacity-10"></div>
+          <div class="relative z-10">
+            <p class="text-yellow-400 font-bold text-xs uppercase tracking-widest mb-4">Centre Al-Bir</p>
+            <div class="space-y-3">
+              <div class="flex justify-between text-sm">
+                <span class="text-white/60">Directeur</span>
+                <span class="text-white font-semibold">{{ site.director }}</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-white/60">Année scolaire</span>
+                <span class="text-yellow-400 font-bold">{{ site.school_year }}</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-white/60">Inscriptions</span>
+                <span class="text-green-400 font-semibold">Ouvertes ✅</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-white/60">Frais annuels</span>
+                <span class="text-white font-semibold">{{ site.fee }}</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-white/60">Début des cours</span>
+                <span class="text-white font-semibold">1er Oct. 2026</span>
+              </div>
+            </div>
+            <a href="{{ url_for('admin.parametres') }}"
+               class="mt-5 block text-center py-2.5 bg-yellow-400 text-primary-900 font-bold rounded-xl text-sm hover:bg-yellow-300 transition-colors">
+              ⚙️ Gérer les paramètres
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+  // Afficher la date actuelle dans le dashboard
+  const now = new Date();
+  const options = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
+  const el = document.getElementById('current-date');
+  if (el) el.textContent = now.toLocaleDateString('fr-FR', options);
+</script>
+{% endblock %}

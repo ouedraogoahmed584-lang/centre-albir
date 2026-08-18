@@ -1,0 +1,159 @@
+{#
+  ============================================================
+  FICHIER #30 — admin/publicite_form.html
+  Formulaire de création d'une nouvelle publicité ou annonce
+  pour le site du Centre Al-Bir. Permet à l'administrateur de
+  définir un titre, uploader une image, spécifier un lien de
+  redirection, choisir la position d'affichage sur le site,
+  et définir si la publicité est immédiatement active.
+  ============================================================
+#}
+{% extends "base.html" %}
+{% block title %}Nouvelle Publicité — Admin Al-Bir{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 pt-16 flex">
+
+  <aside class="fixed left-0 top-16 h-screen w-64 bg-primary-950 text-white z-40 overflow-y-auto shadow-2xl">
+    <div class="p-6 border-b border-white/10">
+      <p class="text-white font-bold text-sm">{{ current_user.full_name }}</p>
+      <p class="text-yellow-400 text-xs">Administrateur</p>
+    </div>
+    <nav class="p-4 space-y-1">
+      {% for ep, icon, label in [
+        ('admin.dashboard',  '📊','Tableau de bord'),
+        ('admin.publicites', '📢','Publicités'),
+        ('admin.parametres', '⚙️','Paramètres'),
+      ] %}
+      <a href="{{ url_for(ep) }}"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white transition-all">
+        <span>{{ icon }}</span> {{ label }}
+      </a>
+      {% endfor %}
+    </nav>
+  </aside>
+
+  <main class="ml-64 flex-1 p-8 max-w-4xl">
+
+    <div class="mb-6">
+      <a href="{{ url_for('admin.publicites') }}"
+         class="inline-flex items-center gap-2 text-gray-500 hover:text-primary-700 transition-colors text-sm mb-4">
+        ← Retour aux publicités
+      </a>
+      <h1 class="text-2xl font-bold font-serif text-gray-900">Nouvelle Publicité</h1>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data"
+          action="{{ url_for('admin.nouvelle_publicite') }}"
+          class="space-y-6">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+      <!-- Titre -->
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <h2 class="font-bold text-gray-800 mb-4 font-serif">Informations générales</h2>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Titre de la publicité <span class="text-red-500">*</span>
+            </label>
+            <input type="text" name="title" required placeholder="Ex: Inscriptions ouvertes 2026/2027"
+                   class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-500 focus:outline-none text-sm transition-colors" />
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Texte / Description (optionnel)</label>
+            <textarea name="content" rows="3" placeholder="Description courte de la publicité..."
+                      class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-500 focus:outline-none text-sm resize-none transition-colors"></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Lien de redirection (optionnel)</label>
+            <input type="url" name="link_url" placeholder="https://..."
+                   class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-500 focus:outline-none text-sm transition-colors" />
+            <p class="text-xs text-gray-400 mt-1">Si renseigné, un clic sur la publicité redirige vers cette URL.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Image -->
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <h2 class="font-bold text-gray-800 mb-4 font-serif">Image de la publicité</h2>
+        <div class="border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center hover:border-primary-400 transition-colors cursor-pointer"
+             onclick="document.getElementById('img-upload').click()">
+          <input type="file" name="image" id="img-upload" accept="image/*"
+                 class="hidden" onchange="previewImage(this)" />
+          <div id="img-preview" class="hidden mb-4">
+            <img id="preview-src" src="#" alt="Aperçu"
+                 class="max-h-32 mx-auto rounded-xl object-cover shadow-sm" />
+          </div>
+          <div id="img-placeholder">
+            <p class="text-5xl mb-3">🖼️</p>
+            <p class="text-gray-500 font-medium text-sm">Cliquer pour choisir une image</p>
+            <p class="text-gray-400 text-xs mt-1">PNG, JPG, WebP — Max 16 Mo</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Position + Ordre -->
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <h2 class="font-bold text-gray-800 mb-4 font-serif">Placement et configuration</h2>
+        <div class="grid md:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Position sur le site <span class="text-red-500">*</span>
+            </label>
+            <select name="position"
+                    class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-500 focus:outline-none text-sm bg-white transition-colors">
+              <option value="banner_top">📌 Bandeau haut de page</option>
+              <option value="hero">🎯 Section Hero (accueil)</option>
+              <option value="between_sections">📍 Entre les sections</option>
+              <option value="sidebar">📄 Barre latérale</option>
+              <option value="banner_bottom">📌 Bandeau bas de page</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Ordre d'affichage</label>
+            <input type="number" name="sort_order" value="0" min="0"
+                   class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-500 focus:outline-none text-sm transition-colors" />
+            <p class="text-xs text-gray-400 mt-1">0 = premier, 1 = deuxième, etc.</p>
+          </div>
+        </div>
+        <div class="mt-4 flex items-center gap-3 p-4 bg-green-50 rounded-xl border border-green-100">
+          <input type="checkbox" name="is_active" id="is_active" checked
+                 class="w-4 h-4 rounded border-gray-300 text-primary-700" />
+          <label for="is_active" class="text-sm font-semibold text-gray-700 cursor-pointer">
+            ✅ Activer immédiatement cette publicité
+          </label>
+        </div>
+      </div>
+
+      <!-- Boutons -->
+      <div class="flex gap-4">
+        <button type="submit"
+                class="flex-1 py-4 bg-primary-900 hover:bg-primary-800 text-white font-bold rounded-2xl transition-all hover:scale-105 shadow-lg">
+          💾 Créer la publicité
+        </button>
+        <a href="{{ url_for('admin.publicites') }}"
+           class="px-8 py-4 border-2 border-gray-200 text-gray-600 font-semibold rounded-2xl hover:bg-gray-50 transition-colors">
+          Annuler
+        </a>
+      </div>
+    </form>
+  </main>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+  // Prévisualisation de l'image avant upload
+  function previewImage(input) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('preview-src').src = e.target.result;
+        document.getElementById('img-preview').classList.remove('hidden');
+        document.getElementById('img-placeholder').classList.add('hidden');
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+</script>
+{% endblock %}

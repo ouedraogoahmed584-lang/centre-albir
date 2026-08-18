@@ -1,0 +1,184 @@
+{#
+  ============================================================
+  FICHIER #38 — public/a_propos.html
+  Page institutionnelle de présentation du Centre Al-Bir.
+  Présente l'histoire du centre, sa mission, sa vision, ses
+  valeurs fondamentales, la direction (Cheikh Mohamed Souleimane)
+  et les chiffres clés. Renforce la confiance des parents et
+  des familles dans l'institution éducative islamique.
+  ============================================================
+#}
+{% extends "base.html" %}
+{% block title %}À propos du Centre Al-Bir — Ouagadougou{% endblock %}
+
+{% block content %}
+
+<!-- ══ HERO ══════════════════════════════════════════════ -->
+<section class="relative pt-24 pb-16"
+         style="background:linear-gradient(135deg,#022C22 0%,#064E3B 70%,#065F46 100%);">
+  <div class="pattern-overlay absolute inset-0 opacity-10"></div>
+  <div class="relative z-10 max-w-4xl mx-auto px-4 text-center">
+    <p class="text-yellow-400 font-arabic text-xl mb-4" data-aos="fade-down">
+      بسم الله الرحمن الرحيم
+    </p>
+    <h1 class="font-serif text-4xl md:text-5xl font-bold text-white mb-4" data-aos="fade-up">
+      À propos du<br/>
+      <span style="background:linear-gradient(135deg,#C89B3C,#E8C472,#C89B3C);
+                   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+                   background-clip:text;">Centre Al-Bir</span>
+    </h1>
+    <p class="text-white/70 text-lg max-w-2xl mx-auto" data-aos="fade-up" data-aos-delay="100">
+      Depuis 2023, nous formons des générations attachées au Coran
+      et à la Sunna à Kienfangu, Ouagadougou.
+    </p>
+  </div>
+  <div class="absolute bottom-0 left-0 right-0">
+    <svg viewBox="0 0 1440 60" fill="none"><path d="M0 60L1440 60L1440 15C1200 45 960 60 720 52C480 44 240 15 0 30V60Z" fill="#FAF7F0"/></svg>
+  </div>
+</section>
+
+<!-- ══ HISTOIRE ══════════════════════════════════════════ -->
+<section class="py-20 bg-ivory">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid lg:grid-cols-2 gap-16 items-center mb-20">
+      <div data-aos="fade-right">
+        <span class="text-yellow-600 font-semibold text-sm uppercase tracking-widest">Notre histoire</span>
+        <h2 class="font-serif text-3xl md:text-4xl font-bold text-primary-900 mt-3 mb-6">
+          Une institution fondée<br/>sur l'excellence islamique
+        </h2>
+        <div class="w-16 h-1 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full mb-6"></div>
+        <div class="space-y-4 text-gray-600 leading-relaxed">
+          <p>
+            Le <strong class="text-primary-900">Centre Al-Bir pour l'Enseignement du Coran et de la Sunna</strong>
+            a été fondé en <strong class="text-yellow-600">2023</strong> à Kienfangu, Ouagadougou,
+            au Burkina Faso, avec une vision claire : créer un espace éducatif islamique
+            d'excellence au cœur de l'Afrique de l'Ouest.
+          </p>
+          <p>
+            Sous la direction du <strong class="text-primary-900">Cheikh Mohamed Souleimane</strong>,
+            le centre s'est rapidement imposé comme une référence pour les familles
+            soucieuses d'offrir à leurs enfants une formation coranique rigoureuse
+            dans un environnement bienveillant et sécurisé.
+          </p>
+          <p>
+            Aujourd'hui, avec plus de <strong class="text-yellow-600">200 élèves inscrits</strong>
+            et un taux de réussite de <strong class="text-yellow-600">85%</strong>,
+            le Centre Al-Bir continue de grandir et de servir sa communauté avec dévouement.
+          </p>
+        </div>
+
+        <!-- Citation -->
+        <div class="mt-8 bg-primary-900 rounded-2xl p-6 text-right">
+          <p class="font-arabic text-yellow-400 text-lg leading-loose">
+            ﴿ خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ ﴾
+          </p>
+          <p class="text-white/60 text-xs mt-2">Le meilleur d'entre vous est celui qui apprend le Coran et l'enseigne — Sahih Al-Bukhari</p>
+        </div>
+      </div>
+
+      <!-- Cartes stats -->
+      <div class="grid grid-cols-2 gap-4" data-aos="fade-left">
+        {% for value, label, icon, bg in [
+          (site.stats.students, 'Élèves inscrits',   '👥', 'bg-primary-900 text-white'),
+          (site.stats.teachers, 'Enseignants',        '🎓', 'bg-yellow-400 text-primary-900'),
+          (site.stats.success_rate, 'Taux de réussite','📈', 'bg-white border-2 border-primary-100'),
+          ('2023',             'Année de fondation',  '⭐', 'bg-primary-50 border-2 border-primary-100'),
+        ] %}
+        <div class="{{ bg }} rounded-2xl p-6 text-center shadow-sm">
+          <p class="text-3xl mb-3">{{ icon }}</p>
+          <p class="text-3xl font-bold font-serif mb-1">{{ value }}</p>
+          <p class="text-sm opacity-70 font-medium">{{ label }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Mission + Vision + Valeurs -->
+    <div class="grid md:grid-cols-3 gap-6 mb-20">
+      {% for icon, title, content, delay in [
+        ('🎯', 'Notre Mission',
+         'Former des étudiants solidement attachés au Coran et à la Sunna dans un cadre éducatif structuré, bienveillant et rigoureux, en s\'appuyant sur les méthodes pédagogiques islamiques éprouvées.',
+         0),
+        ('🌟', 'Notre Vision',
+         'Devenir le centre de référence pour l\'éducation islamique authentique au Burkina Faso et en Afrique de l\'Ouest, contribuant à former des générations équilibrées entre foi et modernité.',
+         100),
+        ('⚖️', 'Nos Valeurs',
+         'Excellence dans l\'enseignement, rigueur académique, bienveillance envers les élèves, respect des familles, authenticité dans la transmission du savoir islamique et engagement continu.',
+         200),
+      ] %}
+      <div class="bg-white rounded-2xl p-8 border-2 border-gray-100 hover:border-yellow-400
+                  shadow-sm hover:shadow-xl transition-all duration-400 hover:-translate-y-2"
+           data-aos="fade-up" data-aos-delay="{{ delay }}">
+        <div class="w-14 h-14 bg-primary-50 rounded-2xl flex items-center justify-center
+                    text-2xl mb-5 border border-primary-100">
+          {{ icon }}
+        </div>
+        <h3 class="font-serif text-xl font-bold text-primary-900 mb-4">{{ title }}</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">{{ content }}</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Direction -->
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden mb-20"
+         data-aos="fade-up">
+      <div class="grid md:grid-cols-2">
+        <div class="p-10 flex flex-col justify-center">
+          <span class="text-yellow-600 font-semibold text-xs uppercase tracking-widest mb-3">Direction</span>
+          <h2 class="font-serif text-3xl font-bold text-primary-900 mb-2">
+            {{ site.director }}
+          </h2>
+          <p class="text-yellow-600 font-semibold mb-5">Fondateur & Directeur — Centre Al-Bir</p>
+          <p class="text-gray-500 text-sm leading-relaxed mb-6">
+            Cheikh Mohamed Souleimane est le fondateur et directeur du Centre Al-Bir.
+            Sous sa direction, le centre a connu une croissance remarquable depuis sa création
+            en 2023, accueillant plus de 200 élèves et bâtissant une réputation d'excellence
+            dans l'enseignement islamique à Ouagadougou.
+          </p>
+          <div class="flex gap-3">
+            <a href="tel:{{ site.phone1_raw }}"
+               class="flex items-center gap-2 px-4 py-2.5 bg-primary-900 text-white
+                      font-bold rounded-xl text-sm hover:bg-primary-800 transition-all">
+              📞 Contacter
+            </a>
+            <a href="https://wa.me/{{ site.phone2_raw }}" target="_blank"
+               class="flex items-center gap-2 px-4 py-2.5 bg-green-500 text-white
+                      font-bold rounded-xl text-sm hover:bg-green-400 transition-all">
+              💬 WhatsApp
+            </a>
+          </div>
+        </div>
+        <div class="bg-gradient-to-br from-primary-900 to-primary-950 p-10 flex items-center justify-center">
+          <div class="text-center">
+            <div class="w-32 h-32 bg-yellow-400/20 rounded-full flex items-center justify-center
+                        text-6xl mx-auto mb-5 border-4 border-yellow-400/30">
+              👳
+            </div>
+            <p class="text-white font-bold text-lg font-serif">{{ site.director }}</p>
+            <p class="text-yellow-400 text-sm font-arabic mt-1">الشيخ محمد سليمان</p>
+            <p class="text-white/50 text-xs mt-2">Fondateur — 2023</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Horaires et infos -->
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+      {% for icon, title, content, bg in [
+        ('🕐', 'Horaires',        site.hours,   'bg-primary-50 border-primary-100'),
+        ('📍', 'Localisation',    site.address, 'bg-yellow-50 border-yellow-100'),
+        ('📞', 'Téléphone',       site.phone1 ~ '\n' ~ site.phone2, 'bg-green-50 border-green-100'),
+        ('✉️', 'Email',           site.email,   'bg-blue-50 border-blue-100'),
+      ] %}
+      <div class="bg-white border {{ bg }} rounded-2xl p-5" data-aos="fade-up">
+        <span class="text-3xl block mb-3">{{ icon }}</span>
+        <p class="font-bold text-gray-800 text-sm mb-1">{{ title }}</p>
+        <p class="text-gray-500 text-xs leading-relaxed">{{ content }}</p>
+      </div>
+      {% endfor %}
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}

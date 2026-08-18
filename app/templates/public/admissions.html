@@ -1,0 +1,626 @@
+{#
+  ============================================================
+  FICHIER #34 — public/admissions.html
+  Page d'inscription en ligne du Centre Al-Bir. Contient un
+  formulaire intelligent en 3 étapes : informations du parent,
+  informations de l'élève avec choix du programme, et upload
+  des documents obligatoires. Validation côté client avant
+  soumission. Confirmation automatique par WhatsApp après envoi.
+  ============================================================
+#}
+{% extends "base.html" %}
+{% block title %}Inscriptions {{ site.school_year }} — Centre Al-Bir{% endblock %}
+{% block description %}Inscrivez votre enfant au Centre Al-Bir pour l'année {{ site.school_year }}. Formulaire en ligne simple et rapide. {{ site.fee }} / année.{% endblock %}
+
+{% block content %}
+
+<!-- ══ HERO ADMISSIONS ═══════════════════════════════════ -->
+<section class="relative pt-24 pb-16 overflow-hidden"
+         style="background:linear-gradient(135deg,#022C22 0%,#064E3B 60%,#065F46 100%);">
+  <div class="pattern-overlay absolute inset-0 opacity-10"></div>
+  <div class="relative z-10 max-w-4xl mx-auto px-4 text-center">
+
+    <!-- Badge -->
+    <div class="inline-flex items-center gap-2 bg-green-500/20 border border-green-400/30
+                text-green-300 px-5 py-2 rounded-full text-sm font-semibold mb-6"
+         data-aos="fade-down">
+      <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+      Inscriptions ouvertes — {{ site.school_year }}
+    </div>
+
+    <h1 class="font-serif text-4xl md:text-5xl font-bold text-white mb-4" data-aos="fade-up">
+      Rejoindre le<br/>
+      <span style="background:linear-gradient(135deg,#C89B3C,#E8C472,#C89B3C);
+                   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+                   background-clip:text;">Centre Al-Bir</span>
+    </h1>
+    <p class="text-white/70 text-lg mb-8 max-w-2xl mx-auto" data-aos="fade-up" data-aos-delay="100">
+      Remplissez le formulaire ci-dessous. Votre dossier sera traité
+      dans les plus brefs délais. Vous recevrez une confirmation par WhatsApp.
+    </p>
+
+    <!-- Infos clés -->
+    <div class="flex flex-wrap justify-center gap-4 text-sm" data-aos="fade-up" data-aos-delay="200">
+      {% for icon, text in [
+        ('📅', 'Du ' ~ site.enroll_start ~ ' au ' ~ site.enroll_end),
+        ('💰', site.fee ~ ' / année'),
+        ('👥', site.age_range),
+        ('📍', 'Kienfangu, Ouagadougou'),
+      ] %}
+      <div class="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-white/90">
+        <span>{{ icon }}</span> {{ text }}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Vague -->
+  <div class="absolute bottom-0 left-0 right-0">
+    <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 60L1440 60L1440 15C1200 45 960 60 720 52C480 44 240 15 0 30V60Z" fill="#FAF7F0"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ══ FORMULAIRE 3 ÉTAPES ════════════════════════════════ -->
+<section class="py-16 bg-ivory">
+  <div class="max-w-3xl mx-auto px-4">
+
+    <!-- Indicateur d'étapes -->
+    <div class="flex items-center justify-center mb-10" data-aos="fade-up">
+      {% for num, label in [('1','Parent / Tuteur'), ('2','Élève'), ('3','Documents')] %}
+      <div class="flex items-center">
+        <div class="flex flex-col items-center">
+          <div id="step-circle-{{ num }}"
+               class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300
+                      {% if num == '1' %}bg-primary-900 text-white shadow-lg{% else %}bg-gray-200 text-gray-400{% endif %}">
+            <span id="step-icon-{{ num }}">
+              {% if num == '1' %}{{ num }}{% else %}{{ num }}{% endif %}
+            </span>
+          </div>
+          <span id="step-label-{{ num }}"
+                class="text-xs mt-2 font-semibold text-center
+                       {% if num == '1' %}text-primary-900{% else %}text-gray-400{% endif %}">
+            {{ label }}
+          </span>
+        </div>
+        {% if not loop.last %}
+        <div class="w-20 sm:w-32 h-0.5 mx-2 mt-[-18px] transition-all duration-500"
+             id="step-line-{{ num }}" style="background:#E5E7EB;"></div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- FORMULAIRE COMPLET -->
+    <form id="enrollment-form" method="POST"
+          action="{{ url_for('public.admissions') }}"
+          enctype="multipart/form-data"
+          class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden"
+          data-aos="fade-up" data-aos-delay="100"
+          novalidate>
+
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+      <!-- ══ ÉTAPE 1 — PARENT ════════════════════════════ -->
+      <div id="step-1" class="step-panel">
+
+        <!-- En-tête étape -->
+        <div class="bg-gradient-to-r from-primary-900 to-primary-800 px-8 py-6">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-yellow-400 rounded-2xl flex items-center
+                        justify-center text-primary-900 font-bold text-lg flex-shrink-0">1</div>
+            <div>
+              <h2 class="text-white font-bold font-serif text-xl">Informations du Parent / Tuteur</h2>
+              <p class="text-white/60 text-sm mt-0.5">La personne responsable légale de l'élève</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-8 space-y-5">
+
+          <!-- Nom complet parent -->
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">
+              Nom complet du parent / tuteur <span class="text-red-500">*</span>
+            </label>
+            <input type="text" name="parent_name" id="parent_name" required
+                   placeholder="Ex: Amadou Ouédraogo"
+                   class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200
+                          focus:border-primary-500 focus:outline-none text-sm
+                          bg-gray-50 focus:bg-white transition-all" />
+            <p class="error-msg text-red-500 text-xs mt-1 hidden">Ce champ est obligatoire.</p>
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-5">
+            <!-- Téléphone -->
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">
+                Téléphone principal <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">🇧🇫</span>
+                <input type="tel" name="parent_phone" id="parent_phone" required
+                       placeholder="+226 XX XX XX XX"
+                       class="w-full pl-10 pr-4 py-3.5 rounded-xl border-2 border-gray-200
+                              focus:border-primary-500 focus:outline-none text-sm
+                              bg-gray-50 focus:bg-white transition-all" />
+              </div>
+              <p class="error-msg text-red-500 text-xs mt-1 hidden">Ce champ est obligatoire.</p>
+            </div>
+
+            <!-- WhatsApp -->
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">
+                Numéro WhatsApp <span class="text-green-600 text-xs font-normal">(recommandé)</span>
+              </label>
+              <div class="relative">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-green-500">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                  </svg>
+                </span>
+                <input type="tel" name="parent_whatsapp"
+                       placeholder="+226 XX XX XX XX"
+                       class="w-full pl-10 pr-4 py-3.5 rounded-xl border-2 border-gray-200
+                              focus:border-green-400 focus:outline-none text-sm
+                              bg-gray-50 focus:bg-white transition-all" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">
+              Adresse email <span class="text-gray-400 text-xs font-normal">(optionnel)</span>
+            </label>
+            <input type="email" name="parent_email"
+                   placeholder="exemple@email.com"
+                   class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200
+                          focus:border-primary-500 focus:outline-none text-sm
+                          bg-gray-50 focus:bg-white transition-all" />
+          </div>
+
+          <!-- Bouton suivant -->
+          <div class="flex justify-end pt-4">
+            <button type="button" onclick="goToStep(2)"
+                    class="flex items-center gap-3 px-8 py-4 bg-primary-900 hover:bg-primary-800
+                           text-white font-bold rounded-2xl transition-all hover:scale-105 shadow-lg text-sm">
+              Étape suivante
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ ÉTAPE 2 — ÉLÈVE ════════════════════════════ -->
+      <div id="step-2" class="step-panel hidden">
+
+        <div class="bg-gradient-to-r from-primary-800 to-primary-700 px-8 py-6">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-yellow-400 rounded-2xl flex items-center
+                        justify-center text-primary-900 font-bold text-lg flex-shrink-0">2</div>
+            <div>
+              <h2 class="text-white font-bold font-serif text-xl">Informations de l'Élève</h2>
+              <p class="text-white/60 text-sm mt-0.5">Renseignez le profil de l'étudiant</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-8 space-y-5">
+
+          <!-- Nom élève -->
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">
+              Nom complet de l'élève <span class="text-red-500">*</span>
+            </label>
+            <input type="text" name="student_name" id="student_name" required
+                   placeholder="Ex: Fatima Ouédraogo"
+                   class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200
+                          focus:border-primary-500 focus:outline-none text-sm
+                          bg-gray-50 focus:bg-white transition-all" />
+            <p class="error-msg text-red-500 text-xs mt-1 hidden">Ce champ est obligatoire.</p>
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-5">
+
+            <!-- Âge -->
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">
+                Âge de l'élève <span class="text-red-500">*</span>
+              </label>
+              <input type="number" name="student_age" id="student_age" required
+                     min="6" max="60" placeholder="Ex: 18"
+                     class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200
+                            focus:border-primary-500 focus:outline-none text-sm
+                            bg-gray-50 focus:bg-white transition-all" />
+              <p class="text-xs text-gray-400 mt-1">Islamique : 15–50 ans | Français : 6–15 ans</p>
+            </div>
+
+            <!-- Niveau actuel -->
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">Niveau actuel</label>
+              <input type="text" name="student_level"
+                     placeholder="Ex: CM2, Débutant, Lycée..."
+                     class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200
+                            focus:border-primary-500 focus:outline-none text-sm
+                            bg-gray-50 focus:bg-white transition-all" />
+            </div>
+          </div>
+
+          <!-- Programme souhaité -->
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-3">
+              Programme souhaité <span class="text-red-500">*</span>
+            </label>
+            <div class="grid md:grid-cols-2 gap-3">
+              {% if programs %}
+                {% for program in programs %}
+                <label class="program-option relative cursor-pointer group">
+                  <input type="radio" name="program_id" value="{{ program.id }}"
+                         class="sr-only peer"
+                         {% if loop.first %}required{% endif %} />
+                  <div class="flex items-center gap-3 p-4 rounded-xl border-2 border-gray-200
+                              peer-checked:border-primary-600 peer-checked:bg-primary-50
+                              hover:border-primary-300 hover:bg-gray-50 transition-all">
+                    <span class="text-2xl flex-shrink-0">{{ program.icon }}</span>
+                    <div class="min-w-0">
+                      <p class="font-semibold text-gray-800 text-sm truncate
+                                peer-checked:text-primary-800 group-hover:text-primary-700">
+                        {{ program.name_fr }}
+                      </p>
+                      {% if program.name_ar %}
+                      <p class="text-gray-400 text-xs font-arabic truncate">{{ program.name_ar }}</p>
+                      {% endif %}
+                      <span class="inline-block text-xs mt-1 px-2 py-0.5 rounded-full
+                                   {% if program.department == 'islamic' %}bg-green-100 text-green-700
+                                   {% else %}bg-blue-100 text-blue-700{% endif %}">
+                        {{ 'Islamique' if program.department == 'islamic' else 'Français' }}
+                      </span>
+                    </div>
+                    <!-- Coche sélection -->
+                    <div class="ml-auto w-5 h-5 rounded-full border-2 border-gray-300
+                                peer-checked:border-primary-600 peer-checked:bg-primary-600
+                                flex items-center justify-center flex-shrink-0 transition-all">
+                      <svg class="w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity"
+                           fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                      </svg>
+                    </div>
+                  </div>
+                </label>
+                {% endfor %}
+              {% else %}
+                <div class="col-span-2 text-center py-6 text-gray-400 bg-gray-50 rounded-xl">
+                  <p>Les programmes seront disponibles prochainement.</p>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Motivation -->
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">
+              Motivation / Commentaire
+              <span class="text-gray-400 text-xs font-normal">(optionnel)</span>
+            </label>
+            <textarea name="motivation" rows="3"
+                      placeholder="Pourquoi souhaitez-vous inscrire votre enfant ? Y a-t-il des informations à signaler ?"
+                      class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200
+                             focus:border-primary-500 focus:outline-none text-sm resize-none
+                             bg-gray-50 focus:bg-white transition-all"></textarea>
+          </div>
+
+          <!-- Navigation -->
+          <div class="flex justify-between pt-4">
+            <button type="button" onclick="goToStep(1)"
+                    class="flex items-center gap-2 px-6 py-3 border-2 border-gray-200
+                           text-gray-600 font-semibold rounded-xl hover:bg-gray-50 transition-all text-sm">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18"/>
+              </svg>
+              Retour
+            </button>
+            <button type="button" onclick="goToStep(3)"
+                    class="flex items-center gap-3 px-8 py-4 bg-primary-900 hover:bg-primary-800
+                           text-white font-bold rounded-2xl transition-all hover:scale-105 shadow-lg text-sm">
+              Étape suivante
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ ÉTAPE 3 — DOCUMENTS ════════════════════════ -->
+      <div id="step-3" class="step-panel hidden">
+
+        <div class="bg-gradient-to-r from-primary-700 to-primary-600 px-8 py-6">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-yellow-400 rounded-2xl flex items-center
+                        justify-center text-primary-900 font-bold text-lg flex-shrink-0">3</div>
+            <div>
+              <h2 class="text-white font-bold font-serif text-xl">Documents Obligatoires</h2>
+              <p class="text-white/60 text-sm mt-0.5">Veuillez joindre les pièces requises</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-8 space-y-6">
+
+          <!-- Documents requis -->
+          {% for field, label, icon, required, hint in [
+            ('doc_bulletin',     'Bulletin du dernier trimestre',            '📋', True,  'Dernier bulletin scolaire de l\'élève'),
+            ('doc_certificate',  'Certificat de la dernière école fréquentée','🏫', True,  'Certificat de scolarité ou de fin d\'année'),
+            ('doc_photo',        'Photo d\'identité de l\'élève',            '🖼️', False, 'Photo récente (recommandée mais non obligatoire)'),
+          ] %}
+          <div class="bg-gray-50 rounded-2xl p-5 border-2 border-gray-100 hover:border-primary-200 transition-colors">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="text-2xl">{{ icon }}</span>
+              <div>
+                <p class="font-bold text-gray-800 text-sm">
+                  {{ label }}
+                  {% if required %}
+                  <span class="text-red-500 ml-1">*</span>
+                  {% else %}
+                  <span class="text-gray-400 text-xs font-normal ml-1">(recommandé)</span>
+                  {% endif %}
+                </p>
+                <p class="text-gray-400 text-xs">{{ hint }}</p>
+              </div>
+            </div>
+            <label class="flex items-center gap-3 cursor-pointer group">
+              <input type="file" name="{{ field }}" accept="image/*,.pdf"
+                     class="hidden" onchange="previewDoc(this, '{{ field }}')" />
+              <div id="{{ field }}_display"
+                   class="flex-1 flex items-center gap-3 px-4 py-3 bg-white border-2 border-dashed
+                          border-gray-300 rounded-xl group-hover:border-primary-400 transition-colors">
+                <span class="text-gray-400 text-sm" id="{{ field }}_name">
+                  Cliquer pour choisir un fichier...
+                </span>
+              </div>
+              <span class="px-4 py-3 bg-primary-900 text-white text-xs font-bold rounded-xl
+                           group-hover:bg-primary-800 transition-colors flex-shrink-0">
+                Parcourir
+              </span>
+            </label>
+          </div>
+          {% endfor %}
+
+          <!-- Présence parent/tuteur -->
+          <div class="bg-yellow-50 rounded-2xl p-5 border-2 border-yellow-200">
+            <div class="flex items-start gap-4">
+              <input type="checkbox" name="parent_present" id="parent_present" required
+                     class="w-5 h-5 mt-0.5 rounded border-gray-300 text-primary-700
+                            focus:ring-primary-500 flex-shrink-0 cursor-pointer" />
+              <label for="parent_present" class="cursor-pointer text-sm">
+                <p class="font-bold text-yellow-800">
+                  Présence obligatoire d'un parent ou tuteur légal <span class="text-red-500">*</span>
+                </p>
+                <p class="text-yellow-700 text-xs mt-1">
+                  Je confirme que je serai présent(e) lors du traitement physique du dossier
+                  au Centre Al-Bir à Kienfangu, Ouagadougou.
+                </p>
+              </label>
+            </div>
+          </div>
+
+          <!-- Récapitulatif -->
+          <div class="bg-primary-50 rounded-2xl p-5 border border-primary-100">
+            <p class="font-bold text-primary-900 text-sm mb-4">📋 Récapitulatif de votre demande</p>
+            <div class="space-y-2 text-xs text-gray-600" id="recap">
+              <div class="flex justify-between py-1 border-b border-primary-100">
+                <span class="text-gray-500">Parent</span>
+                <span class="font-semibold text-gray-800" id="recap-parent">—</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-primary-100">
+                <span class="text-gray-500">Téléphone</span>
+                <span class="font-semibold text-gray-800" id="recap-phone">—</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-primary-100">
+                <span class="text-gray-500">Élève</span>
+                <span class="font-semibold text-gray-800" id="recap-student">—</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-primary-100">
+                <span class="text-gray-500">Programme</span>
+                <span class="font-semibold text-primary-800" id="recap-program">—</span>
+              </div>
+              <div class="flex justify-between py-1">
+                <span class="text-gray-500">Frais annuels</span>
+                <span class="font-bold text-yellow-600">{{ site.fee }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Navigation finale -->
+          <div class="flex justify-between pt-4">
+            <button type="button" onclick="goToStep(2)"
+                    class="flex items-center gap-2 px-6 py-3 border-2 border-gray-200
+                           text-gray-600 font-semibold rounded-xl hover:bg-gray-50 transition-all text-sm">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18"/>
+              </svg>
+              Retour
+            </button>
+            <button type="submit" id="submit-btn"
+                    class="flex items-center gap-3 px-10 py-4 bg-yellow-400 hover:bg-yellow-300
+                           text-primary-900 font-bold rounded-2xl transition-all hover:scale-105
+                           shadow-xl text-sm">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+              </svg>
+              Envoyer ma demande
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </form>
+
+    <!-- ══ CONTACTS ALTERNATIFS ══════════════════════════ -->
+    <div class="mt-8 bg-white rounded-2xl border border-gray-100 p-6 shadow-sm" data-aos="fade-up">
+      <p class="font-bold text-gray-800 text-center mb-5 font-serif">
+        Vous préférez nous contacter directement ?
+      </p>
+      <div class="grid md:grid-cols-3 gap-4">
+        <a href="https://wa.me/{{ site.phone2_raw }}" target="_blank"
+           class="flex items-center gap-3 p-4 bg-green-50 border-2 border-green-200
+                  rounded-xl hover:bg-green-100 hover:border-green-400 transition-all group">
+          <span class="text-2xl">💬</span>
+          <div>
+            <p class="font-bold text-green-800 text-sm">WhatsApp</p>
+            <p class="text-green-600 text-xs">{{ site.phone2 }}</p>
+          </div>
+        </a>
+        <a href="tel:{{ site.phone1_raw }}"
+           class="flex items-center gap-3 p-4 bg-primary-50 border-2 border-primary-100
+                  rounded-xl hover:bg-primary-100 hover:border-primary-300 transition-all">
+          <span class="text-2xl">📞</span>
+          <div>
+            <p class="font-bold text-primary-900 text-sm">Appeler</p>
+            <p class="text-primary-700 text-xs">{{ site.phone1 }}</p>
+          </div>
+        </a>
+        <a href="{{ site.maps_url }}" target="_blank"
+           class="flex items-center gap-3 p-4 bg-yellow-50 border-2 border-yellow-100
+                  rounded-xl hover:bg-yellow-100 hover:border-yellow-300 transition-all">
+          <span class="text-2xl">📍</span>
+          <div>
+            <p class="font-bold text-yellow-800 text-sm">Venir nous voir</p>
+            <p class="text-yellow-700 text-xs">Kienfangu, Ouagadougou</p>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+// ════════════════════════════════════════════════════
+// LOGIQUE FORMULAIRE 3 ÉTAPES — Centre Al-Bir
+// ════════════════════════════════════════════════════
+
+let currentStep = 1;
+
+function goToStep(step) {
+  // Validation étape 1
+  if (step > 1) {
+    const name  = document.getElementById('parent_name');
+    const phone = document.getElementById('parent_phone');
+    let valid = true;
+    if (!name.value.trim()) { showError(name); valid = false; } else clearError(name);
+    if (!phone.value.trim()) { showError(phone); valid = false; } else clearError(phone);
+    if (step > 1 && !valid && currentStep === 1) return;
+  }
+
+  // Validation étape 2
+  if (step > 2) {
+    const sname = document.getElementById('student_name');
+    const sage  = document.getElementById('student_age');
+    let valid = true;
+    if (!sname.value.trim()) { showError(sname); valid = false; } else clearError(sname);
+    if (!sage.value.trim())  { showError(sage);  valid = false; } else clearError(sage);
+    if (!valid && currentStep === 2) return;
+    updateRecap();
+  }
+
+  // Cacher tous les panels
+  document.querySelectorAll('.step-panel').forEach(p => p.classList.add('hidden'));
+  document.getElementById('step-' + step).classList.remove('hidden');
+
+  // Mettre à jour les cercles
+  for (let i = 1; i <= 3; i++) {
+    const circle = document.getElementById('step-circle-' + i);
+    const label  = document.getElementById('step-label-' + i);
+    const icon   = document.getElementById('step-icon-' + i);
+
+    if (i < step) {
+      circle.className = 'w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 bg-green-500 text-white shadow-lg';
+      icon.textContent = '✓';
+      label.className  = 'text-xs mt-2 font-semibold text-center text-green-600';
+      const line = document.getElementById('step-line-' + i);
+      if (line) line.style.background = '#22C55E';
+    } else if (i === step) {
+      circle.className = 'w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 bg-primary-900 text-white shadow-lg';
+      icon.textContent = i;
+      label.className  = 'text-xs mt-2 font-semibold text-center text-primary-900';
+    } else {
+      circle.className = 'w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 bg-gray-200 text-gray-400';
+      icon.textContent = i;
+      label.className  = 'text-xs mt-2 font-semibold text-center text-gray-400';
+    }
+  }
+
+  currentStep = step;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showError(el) {
+  el.classList.add('border-red-400', 'bg-red-50');
+  el.classList.remove('border-gray-200');
+  const msg = el.parentElement.querySelector('.error-msg') ||
+              el.closest('div').querySelector('.error-msg');
+  if (msg) msg.classList.remove('hidden');
+}
+
+function clearError(el) {
+  el.classList.remove('border-red-400', 'bg-red-50');
+  el.classList.add('border-gray-200');
+  const msg = el.parentElement.querySelector('.error-msg') ||
+              el.closest('div').querySelector('.error-msg');
+  if (msg) msg.classList.add('hidden');
+}
+
+function updateRecap() {
+  const pname   = document.getElementById('parent_name').value;
+  const pphone  = document.getElementById('parent_phone').value;
+  const sname   = document.getElementById('student_name').value;
+  const sage    = document.getElementById('student_age').value;
+  const progSel = document.querySelector('input[name="program_id"]:checked');
+  const progLabel = progSel
+    ? progSel.closest('label').querySelector('p.font-semibold').textContent.trim()
+    : '—';
+
+  document.getElementById('recap-parent').textContent  = pname  || '—';
+  document.getElementById('recap-phone').textContent   = pphone || '—';
+  document.getElementById('recap-student').textContent = (sname && sage) ? sname + ' (' + sage + ' ans)' : '—';
+  document.getElementById('recap-program').textContent = progLabel;
+}
+
+function previewDoc(input, field) {
+  const nameEl = document.getElementById(field + '_name');
+  if (input.files && input.files[0]) {
+    const fileName = input.files[0].name;
+    nameEl.textContent = '✅ ' + fileName;
+    nameEl.classList.add('text-green-600', 'font-semibold');
+  }
+}
+
+// Sélection programme — style radio
+document.querySelectorAll('.program-option input[type="radio"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    document.querySelectorAll('.program-option > div').forEach(d => {
+      d.classList.remove('border-primary-600', 'bg-primary-50');
+      d.classList.add('border-gray-200');
+    });
+    const div = radio.closest('label').querySelector('div');
+    div.classList.add('border-primary-600', 'bg-primary-50');
+    div.classList.remove('border-gray-200');
+  });
+});
+
+// Anti-double soumission
+document.getElementById('enrollment-form').addEventListener('submit', function() {
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Envoi en cours...';
+  btn.classList.add('opacity-75');
+});
+</script>
+{% endblock %}

@@ -1,0 +1,165 @@
+{#
+  ============================================================
+  FICHIER #27 — admin/inscriptions.html
+  Page de gestion complète de toutes les demandes d'inscription
+  reçues sur le site du Centre Al-Bir. Permet à l'administrateur
+  de filtrer les dossiers par statut (en attente, accepté, refusé,
+  inscrit), de visualiser les informations de chaque demande
+  et d'accéder au détail complet pour traitement.
+  ============================================================
+#}
+{% extends "base.html" %}
+{% block title %}Gestion des Inscriptions — Admin Al-Bir{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 pt-16 flex">
+
+  {# Réutilisation sidebar via macro — incluse ici directement #}
+  <aside class="fixed left-0 top-16 h-screen w-64 bg-primary-950 text-white z-40 overflow-y-auto shadow-2xl">
+    <div class="p-6 border-b border-white/10">
+      <p class="text-white font-bold text-sm">{{ current_user.full_name }}</p>
+      <p class="text-yellow-400 text-xs">Administrateur</p>
+    </div>
+    <nav class="p-4 space-y-1">
+      {% for ep, icon, label in [
+        ('admin.dashboard',   '📊', 'Tableau de bord'),
+        ('admin.inscriptions','📝', 'Inscriptions'),
+        ('admin.eleves',      '👥', 'Élèves'),
+        ('admin.enseignants', '🎓', 'Enseignants'),
+        ('admin.programmes',  '📚', 'Programmes'),
+        ('admin.actualites',  '📰', 'Actualités'),
+        ('admin.galerie',     '🖼️', 'Galerie'),
+        ('admin.publicites',  '📢', 'Publicités'),
+        ('admin.parametres',  '⚙️', 'Paramètres'),
+      ] %}
+      <a href="{{ url_for(ep) }}"
+         class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
+                {% if request.endpoint == ep %}bg-yellow-400 text-primary-900 font-bold
+                {% else %}text-white/70 hover:bg-white/10 hover:text-white{% endif %}">
+        <span>{{ icon }}</span> {{ label }}
+      </a>
+      {% endfor %}
+      <div class="border-t border-white/10 pt-3 mt-3">
+        <a href="{{ url_for('auth.deconnexion') }}"
+           class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-red-400 hover:bg-red-500/20 transition-all">
+          🚪 Déconnexion
+        </a>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="ml-64 flex-1 p-8">
+
+    <!-- En-tête -->
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-2xl font-bold font-serif text-gray-900">Gestion des Inscriptions</h1>
+        <p class="text-gray-500 text-sm mt-1">{{ applications|length }} dossier(s) trouvé(s)</p>
+      </div>
+    </div>
+
+    <!-- Filtres par statut -->
+    <div class="flex flex-wrap gap-2 mb-6">
+      {% for status, label, color in [
+        ('',              'Toutes',         'bg-gray-800 text-white'),
+        ('pending',       'En attente',     'bg-gray-200 text-gray-700'),
+        ('docs_received', 'Docs reçus',     'bg-blue-100 text-blue-700'),
+        ('under_review',  'En examen',      'bg-yellow-100 text-yellow-700'),
+        ('accepted',      'Acceptées',      'bg-green-100 text-green-700'),
+        ('rejected',      'Refusées',       'bg-red-100 text-red-700'),
+        ('enrolled',      'Inscrits',       'bg-emerald-100 text-emerald-700'),
+      ] %}
+      <a href="{{ url_for('admin.inscriptions') }}{% if status %}?status={{ status }}{% endif %}"
+         class="px-4 py-2 rounded-xl text-sm font-semibold transition-all
+                {% if current_status == status %}{{ color }} shadow-md
+                {% else %}bg-white text-gray-600 border border-gray-200 hover:border-primary-300 hover:text-primary-700{% endif %}">
+        {{ label }}
+      </a>
+      {% endfor %}
+    </div>
+
+    <!-- Tableau des inscriptions -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      {% if applications %}
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="bg-gray-50 border-b border-gray-100">
+              <th class="px-5 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Référence</th>
+              <th class="px-5 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Élève</th>
+              <th class="px-5 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Parent</th>
+              <th class="px-5 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Programme</th>
+              <th class="px-5 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Date</th>
+              <th class="px-5 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Statut</th>
+              <th class="px-5 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-50">
+            {% for app in applications %}
+            <tr class="hover:bg-gray-50 transition-colors group">
+              <td class="px-5 py-4">
+                <span class="font-mono text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-lg">
+                  {{ app.reference or 'N/A' }}
+                </span>
+              </td>
+              <td class="px-5 py-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center text-primary-800 font-bold text-xs flex-shrink-0">
+                    {{ app.student_name[0].upper() if app.student_name else '?' }}
+                  </div>
+                  <div>
+                    <p class="font-semibold text-gray-800 text-sm">{{ app.student_name }}</p>
+                    <p class="text-gray-400 text-xs">{{ app.student_age }} ans</p>
+                  </div>
+                </div>
+              </td>
+              <td class="px-5 py-4">
+                <p class="text-gray-700 text-sm font-medium">{{ app.parent_name }}</p>
+                <a href="tel:{{ app.parent_phone }}" class="text-gray-400 text-xs hover:text-primary-700 transition-colors">
+                  {{ app.parent_phone }}
+                </a>
+              </td>
+              <td class="px-5 py-4">
+                <span class="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-lg">
+                  {% if app.program %}{{ app.program.name_fr[:30] }}{% else %}Non défini{% endif %}
+                </span>
+              </td>
+              <td class="px-5 py-4">
+                <p class="text-gray-600 text-xs">{{ app.submitted_at.strftime('%d/%m/%Y') }}</p>
+                <p class="text-gray-400 text-xs">{{ app.submitted_at.strftime('%H:%M') }}</p>
+              </td>
+              <td class="px-5 py-4">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold
+                  {% if app.status == 'pending' %}bg-gray-100 text-gray-600
+                  {% elif app.status == 'docs_received' %}bg-blue-100 text-blue-700
+                  {% elif app.status == 'under_review' %}bg-yellow-100 text-yellow-700
+                  {% elif app.status == 'accepted' %}bg-green-100 text-green-700
+                  {% elif app.status == 'rejected' %}bg-red-100 text-red-700
+                  {% elif app.status == 'enrolled' %}bg-emerald-100 text-emerald-700
+                  {% endif %}">
+                  {{ app.status_label }}
+                </span>
+              </td>
+              <td class="px-5 py-4">
+                <a href="{{ url_for('admin.inscription_detail', id=app.id) }}"
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-900 text-white text-xs font-semibold rounded-lg hover:bg-primary-800 transition-colors">
+                  Voir le dossier →
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="py-16 text-center">
+        <p class="text-5xl mb-4">📋</p>
+        <p class="text-gray-500 font-medium">Aucune inscription trouvée.</p>
+        <p class="text-gray-400 text-sm mt-1">Les demandes soumises via le formulaire apparaîtront ici.</p>
+      </div>
+      {% endif %}
+    </div>
+
+  </main>
+</div>
+{% endblock %}

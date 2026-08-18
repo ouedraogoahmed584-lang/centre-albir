@@ -312,3 +312,42 @@ def parametres():
 def utilisateurs():
     users = User.query.order_by(User.created_at.desc()).all()
     return render_template('admin/utilisateurs.html', users=users)
+
+
+
+
+
+# ══════════════════════════════════════════════════════════════
+# ROUTES MANQUANTES — à ajouter à la fin de admin.py
+# Gestion des événements, élèves et paiements
+# ══════════════════════════════════════════════════════════════
+
+@admin_bp.route('/evenements')
+@login_required
+@admin_required
+def evenements():
+    """Liste des événements du centre"""
+    events = Event.query.order_by(Event.start_date.desc()).all()
+    return render_template('admin/evenements.html', events=events)
+
+
+@admin_bp.route('/paiements')
+@login_required
+@admin_required
+def paiements():
+    """Gestion des paiements"""
+    payments = Payment.query.order_by(Payment.payment_date.desc()).all()
+    return render_template('admin/paiements.html', payments=payments)
+
+
+@admin_bp.route('/galerie/<int:id>/supprimer', methods=['POST'])
+@login_required
+@admin_required
+def supprimer_photo(id):
+    """Supprime une photo de la galerie"""
+    from app.models.gallery import Gallery
+    photo = Gallery.query.get_or_404(id)
+    db.session.delete(photo)
+    db.session.commit()
+    flash('Photo supprimee.', 'success')
+    return redirect(url_for('admin.galerie'))

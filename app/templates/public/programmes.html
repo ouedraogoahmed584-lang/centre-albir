@@ -1,0 +1,163 @@
+{#
+  ============================================================
+  FICHIER #35 — public/programmes.html
+  Page de présentation complète de tous les programmes
+  d'enseignement du Centre Al-Bir. Organisée en deux
+  départements : Islamique (Hifz, Tajwid, Tafsir, Moutoun,
+  Sciences) et Français (CP1 à CM2). Chaque programme dispose
+  d'une fiche détaillée avec objectifs, durée et bouton d'inscription.
+  ============================================================
+#}
+{% extends "base.html" %}
+{% block title %}Nos Programmes — Centre Al-Bir{% endblock %}
+{% block description %}Découvrez les programmes du Centre Al-Bir : Mémorisation du Coran, Tajwid, Tafsir, Moutoun, Sciences islamiques et programme français CP1–CM2.{% endblock %}
+
+{% block content %}
+
+<!-- ══ HERO ══════════════════════════════════════════════ -->
+<section class="relative pt-24 pb-16"
+         style="background:linear-gradient(135deg,#022C22 0%,#064E3B 70%,#065F46 100%);">
+  <div class="pattern-overlay absolute inset-0 opacity-10"></div>
+  <div class="relative z-10 max-w-4xl mx-auto px-4 text-center">
+    <span class="inline-block bg-yellow-400/20 text-yellow-300 px-4 py-2 rounded-full
+                 text-sm font-semibold mb-5" data-aos="fade-down">
+      📚 Nos enseignements
+    </span>
+    <h1 class="font-serif text-4xl md:text-5xl font-bold text-white mb-4" data-aos="fade-up">
+      Programmes<br/>
+      <span style="background:linear-gradient(135deg,#C89B3C,#E8C472,#C89B3C);
+                   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+                   background-clip:text;">{{ site.school_year }}</span>
+    </h1>
+    <p class="text-white/70 text-lg max-w-2xl mx-auto" data-aos="fade-up" data-aos-delay="100">
+      Six programmes structurés pour former une génération
+      ancrée dans sa foi et ouverte sur le monde.
+    </p>
+  </div>
+  <div class="absolute bottom-0 left-0 right-0">
+    <svg viewBox="0 0 1440 60" fill="none"><path d="M0 60L1440 60L1440 15C1200 45 960 60 720 52C480 44 240 15 0 30V60Z" fill="#FAF7F0"/></svg>
+  </div>
+</section>
+
+<!-- ══ PROGRAMMES ════════════════════════════════════════ -->
+<section class="py-20 bg-ivory">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <!-- Filtre département -->
+    <div class="flex justify-center gap-3 mb-14" data-aos="fade-up">
+      <button onclick="filterDept('all')" id="filter-all"
+              class="filter-btn active px-6 py-2.5 rounded-full font-bold text-sm transition-all
+                     bg-primary-900 text-white shadow-md">
+        Tous les programmes
+      </button>
+      <button onclick="filterDept('islamic')" id="filter-islamic"
+              class="filter-btn px-6 py-2.5 rounded-full font-semibold text-sm transition-all
+                     bg-white text-gray-600 border-2 border-gray-200 hover:border-primary-300">
+        🕌 Islamique
+      </button>
+      <button onclick="filterDept('french')" id="filter-french"
+              class="filter-btn px-6 py-2.5 rounded-full font-semibold text-sm transition-all
+                     bg-white text-gray-600 border-2 border-gray-200 hover:border-primary-300">
+        🇫🇷 Français
+      </button>
+    </div>
+
+    {% if programs %}
+    <!-- Groupe Islamique -->
+    <div id="dept-islamic" class="dept-section mb-16">
+      <div class="flex items-center gap-4 mb-8" data-aos="fade-right">
+        <div class="w-12 h-12 bg-primary-100 rounded-2xl flex items-center justify-center text-2xl">🕌</div>
+        <div>
+          <h2 class="font-serif text-2xl font-bold text-primary-900">Département Islamique</h2>
+          <p class="text-gray-500 text-sm">Formation coranique et sciences religieuses</p>
+        </div>
+        <div class="flex-1 h-px bg-primary-100 ml-4"></div>
+      </div>
+
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for program in programs if program.department == 'islamic' %}
+        {% include 'public/_program_card.html' %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Groupe Français -->
+    <div id="dept-french" class="dept-section">
+      <div class="flex items-center gap-4 mb-8" data-aos="fade-right">
+        <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-2xl">🇫🇷</div>
+        <div>
+          <h2 class="font-serif text-2xl font-bold text-primary-900">Département Français</h2>
+          <p class="text-gray-500 text-sm">Programme académique du cycle primaire</p>
+        </div>
+        <div class="flex-1 h-px bg-blue-100 ml-4"></div>
+      </div>
+
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for program in programs if program.department == 'french' %}
+        {% include 'public/_program_card.html' %}
+        {% endfor %}
+      </div>
+    </div>
+
+    {% else %}
+    <div class="text-center py-20 text-gray-400">
+      <p class="text-5xl mb-4">📚</p>
+      <p class="text-lg font-medium">Les programmes seront disponibles prochainement.</p>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+
+<!-- ══ CTA ═══════════════════════════════════════════════ -->
+<section class="py-16 bg-white">
+  <div class="max-w-4xl mx-auto px-4 text-center">
+    <h2 class="font-serif text-3xl font-bold text-primary-900 mb-4" data-aos="fade-up">
+      Prêt à rejoindre le Centre Al-Bir ?
+    </h2>
+    <p class="text-gray-500 mb-8" data-aos="fade-up" data-aos-delay="100">
+      Inscriptions ouvertes du {{ site.enroll_start }} au {{ site.enroll_end }}.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center" data-aos="fade-up" data-aos-delay="200">
+      <a href="{{ url_for('public.admissions') }}"
+         class="inline-flex items-center justify-center gap-2 px-10 py-4 bg-primary-900
+                text-white font-bold rounded-2xl hover:bg-primary-800 transition-all
+                hover:scale-105 shadow-xl">
+        ✍️ S'inscrire maintenant
+      </a>
+      <a href="{{ url_for('public.contact') }}"
+         class="inline-flex items-center justify-center gap-2 px-8 py-4 border-2
+                border-primary-900 text-primary-900 font-semibold rounded-2xl
+                hover:bg-primary-900 hover:text-white transition-all">
+        📞 Nous contacter
+      </a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+function filterDept(dept) {
+  // Boutons
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.classList.remove('bg-primary-900','text-white','shadow-md');
+    btn.classList.add('bg-white','text-gray-600','border-2','border-gray-200');
+  });
+  const activeBtn = document.getElementById('filter-' + dept);
+  activeBtn.classList.add('bg-primary-900','text-white','shadow-md');
+  activeBtn.classList.remove('bg-white','text-gray-600','border-2','border-gray-200');
+
+  // Sections
+  const sections = document.querySelectorAll('.dept-section');
+  sections.forEach(s => {
+    if (dept === 'all' || s.id === 'dept-' + dept) {
+      s.style.display = 'block';
+    } else {
+      s.style.display = 'none';
+    }
+  });
+}
+</script>
+{% endblock %}
