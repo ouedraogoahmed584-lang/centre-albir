@@ -1,0 +1,48 @@
+# Environnement virtuel
+.venv/
+venv/
+env/
+
+# Variables d'environnement (JAMAIS commiter les secrets)
+.env
+
+# Base de données locale
+*.db
+*.sqlite
+*.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+*.class
+*.pyc
+*.pyo
+dist/
+build/
+*.egg-info/
+
+# Uploads utilisateurs
+app/static/images/uploads/*
+!app/static/images/uploads/.gitkeep
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Windows
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+
+# Logs
+*.log
+logs/
+
+# Flask sessions
+flask_session/
+
+# Migration versions (garder le dossier, pas les fichiers auto)
+# migrations/versions/*.py  ← décommente si tu veux les exclure
+
+# OS
+.DS_Store
