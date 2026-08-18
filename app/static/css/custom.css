@@ -1451,3 +1451,603 @@ body, .card, .btn, #navbar, .admin-sidebar,
 #theme-toggle-btn:hover {
   background: linear-gradient(135deg, #A67C2A 0%, #E8C472 100%);
 }
+
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVE DESIGN COMPLET — CENTRE AL-BIR
+   Mobile First : 320px → 375px → 640px → 768px → 1024px → 1280px
+══════════════════════════════════════════════════════════ */
+
+/* ── BASE UNIVERSELLE ─────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box !important;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  min-width: 320px;
+  overflow-x: hidden;
+}
+
+img, video, svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ── CONTAINER RESPONSIVE ─────────────────────────────── */
+.container-albir {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container-albir { padding-left: 1.5rem; padding-right: 1.5rem; }
+}
+
+@media (min-width: 1024px) {
+  .container-albir { padding-left: 2rem; padding-right: 2rem; }
+}
+
+/* ── NAVBAR RESPONSIVE ────────────────────────────────── */
+#navbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  width: 100%;
+}
+
+/* Nav desktop — caché sur mobile */
+.nav-desktop {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .nav-desktop {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+}
+
+/* Bouton S'inscrire — caché sur très petit mobile */
+.nav-cta-btn {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .nav-cta-btn {
+    display: inline-flex;
+  }
+}
+
+/* Burger — visible seulement sur mobile */
+.nav-burger {
+  display: flex;
+}
+
+@media (min-width: 1024px) {
+  .nav-burger {
+    display: none !important;
+  }
+}
+
+/* ── MENU MOBILE ──────────────────────────────────────── */
+#mobile-menu {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+}
+
+#mobile-menu.open {
+  max-height: 100vh;
+}
+
+/* ── HERO SECTION RESPONSIVE ──────────────────────────── */
+.hero {
+  min-height: 100dvh;
+  padding-top: 5rem;
+  padding-bottom: 3rem;
+}
+
+@media (min-width: 768px) {
+  .hero {
+    padding-top: 6rem;
+    padding-bottom: 4rem;
+  }
+}
+
+.hero-title {
+  font-size: clamp(2rem, 7vw, 5rem);
+  line-height: 1.1;
+}
+
+.hero-subtitle {
+  font-size: clamp(0.9375rem, 2.5vw, 1.25rem);
+}
+
+/* ── GRILLES RESPONSIVE ───────────────────────────────── */
+.grid-auto-responsive {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .grid-auto-responsive {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-auto-responsive {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.75rem;
+  }
+}
+
+/* ── GALERIE RESPONSIVE ───────────────────────────────── */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.625rem;
+}
+
+@media (min-width: 640px) {
+  .gallery-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.875rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .gallery-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+}
+
+.gallery-item {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  cursor: pointer;
+  background: var(--bg-card);
+}
+
+.gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+  display: block;
+}
+
+.gallery-item:hover img {
+  transform: scale(1.08);
+}
+
+.gallery-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(2,44,34,0.85) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  display: flex;
+  align-items: flex-end;
+  padding: 0.875rem;
+}
+
+.gallery-item:hover .gallery-overlay {
+  opacity: 1;
+}
+
+/* ── STATS SECTION RESPONSIVE ─────────────────────────── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ── PROGRAMMES RESPONSIVE ────────────────────────────── */
+.programs-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .programs-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .programs-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ── FORMULAIRE ADMISSIONS RESPONSIVE ─────────────────── */
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .form-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ── SIDEBAR ADMIN RESPONSIVE ─────────────────────────── */
+.admin-sidebar {
+  position: fixed;
+  left: 0;
+  top: 68px;
+  height: calc(100vh - 68px);
+  width: 256px;
+  background: var(--bg-sidebar);
+  border-right: 1px solid rgba(255,255,255,0.06);
+  z-index: 400;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  /* Mobile : caché par défaut */
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Desktop : toujours visible */
+@media (min-width: 1024px) {
+  .admin-sidebar {
+    transform: translateX(0) !important;
+  }
+}
+
+/* Mobile : visible si classe open */
+.admin-sidebar.mobile-open {
+  transform: translateX(0);
+  box-shadow: 4px 0 40px rgba(0,0,0,0.4);
+}
+
+.admin-main {
+  /* Mobile : pas de marge gauche */
+  margin-left: 0;
+  padding: 1rem;
+  min-height: calc(100vh - 68px);
+  background: var(--bg-body);
+  transition: margin-left 0.3s ease;
+}
+
+/* Desktop : marge pour la sidebar */
+@media (min-width: 1024px) {
+  .admin-main {
+    margin-left: 256px;
+    padding: 2rem;
+  }
+}
+
+/* Bouton burger admin pour mobile */
+.admin-burger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--color-primary);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  color: white;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .admin-burger {
+    display: none !important;
+  }
+}
+
+/* Overlay mobile sidebar */
+.admin-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 399;
+}
+
+.admin-overlay.active {
+  display: block;
+}
+
+/* ── FOOTER RESPONSIVE ────────────────────────────────── */
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 640px) {
+  .footer-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .footer-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ── BOUTONS FLOTTANTS RESPONSIVE ─────────────────────── */
+.float-btn {
+  position: fixed;
+  z-index: 999;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 2px solid rgba(255,255,255,0.20);
+  transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+}
+
+/* Mobile */
+.float-btn {
+  width: 50px;
+  height: 50px;
+}
+
+/* Desktop */
+@media (min-width: 640px) {
+  .float-btn {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+.float-btn:hover {
+  transform: scale(1.1) translateY(-2px);
+}
+
+.float-btn:active {
+  transform: scale(0.95);
+}
+
+/* Positions mobiles */
+.float-btn-whatsapp {
+  bottom: 1rem;
+  right: 1rem;
+  background: #25D366;
+  animation: pulseWhatsApp 2.5s ease-in-out infinite;
+}
+
+.float-btn-scroll {
+  bottom: 4rem;
+  right: 1rem;
+  background: var(--color-primary);
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.8);
+}
+
+.float-btn-scroll.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1);
+}
+
+#float-espace {
+  position: fixed;
+  right: 1rem;
+  bottom: 7rem;
+  z-index: 999;
+}
+
+/* Positions desktop */
+@media (min-width: 640px) {
+  .float-btn-whatsapp {
+    bottom: 1.5rem;
+    right: 1.5rem;
+  }
+
+  .float-btn-scroll {
+    bottom: 4.5rem;
+    right: 1.5rem;
+  }
+
+  #float-espace {
+    right: 1.5rem;
+    bottom: 8rem;
+  }
+}
+
+/* ── THEME PANEL RESPONSIVE ───────────────────────────── */
+#theme-panel {
+  position: fixed;
+  right: -300px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 9998;
+  transition: right 0.4s cubic-bezier(0.4,0,0.2,1);
+  display: flex;
+  align-items: center;
+}
+
+#theme-panel.open {
+  right: 0;
+}
+
+#theme-panel-content {
+  background: var(--bg-card);
+  width: 260px;
+  border-radius: 20px 0 0 20px;
+  box-shadow: -8px 0 40px rgba(0,0,0,0.25);
+  border: 1px solid var(--border-card);
+  border-right: none;
+  overflow: hidden;
+}
+
+/* Mobile : panel plus petit */
+@media (max-width: 639px) {
+  #theme-panel {
+    top: auto;
+    bottom: 0;
+    right: auto;
+    left: -100%;
+    transform: none;
+    width: 100%;
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  #theme-panel.open {
+    left: 0;
+    right: 0;
+  }
+
+  #theme-toggle-btn {
+    border-radius: 12px 12px 0 0;
+    width: 100%;
+    height: 40px;
+    writing-mode: horizontal-tb;
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+
+  #theme-panel-content {
+    width: 100%;
+    border-radius: 0;
+    border: none;
+    border-top: 1px solid var(--border-card);
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+}
+
+/* ── TABLES RESPONSIVE ────────────────────────────────── */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 16px;
+}
+
+.table-premium {
+  min-width: 640px;
+}
+
+/* ── FORMULAIRE INSCRIPTION RESPONSIVE ─────────────────── */
+.step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  overflow-x: auto;
+  padding: 0.5rem 0;
+}
+
+/* ── SECTIONS GENERALES ───────────────────────────────── */
+.section {
+  padding: 3rem 0;
+}
+
+@media (min-width: 768px) {
+  .section {
+    padding: 4rem 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .section {
+    padding: 5rem 0;
+  }
+}
+
+/* ── TYPOGRAPHY RESPONSIVE ────────────────────────────── */
+.section-title {
+  font-size: clamp(1.5rem, 4vw, 3rem);
+}
+
+.section-desc {
+  font-size: clamp(0.9375rem, 2vw, 1.0625rem);
+}
+
+/* ── CARDS RESPONSIVE ─────────────────────────────────── */
+.card-premium:hover {
+  transform: translateY(-4px);
+}
+
+/* Désactiver hover transform sur mobile (tactile) */
+@media (hover: none) {
+  .card-premium:hover,
+  .card:hover,
+  .stat-card:hover {
+    transform: none !important;
+  }
+
+  .float-btn:hover {
+    transform: none !important;
+  }
+}
+
+/* ── ANIMATIONS REDUCED MOTION ────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .float-btn-whatsapp {
+    animation: none !important;
+  }
+}
+
+/* ── ACCESSIBILITÉ FOCUS ──────────────────────────────── */
+:focus-visible {
+  outline: 3px solid var(--color-gold);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ── UTILITAIRES RESPONSIVE ───────────────────────────── */
+.hide-mobile  { display: none; }
+.show-mobile  { display: block; }
+
+@media (min-width: 768px) {
+  .hide-mobile  { display: block; }
+  .show-mobile  { display: none; }
+}
+
+.hide-desktop { display: block; }
+
+@media (min-width: 1024px) {
+  .hide-desktop { display: none !important; }
+}
+
+.show-desktop { display: none; }
+
+@media (min-width: 1024px) {
+  .show-desktop { display: block; }
+}
