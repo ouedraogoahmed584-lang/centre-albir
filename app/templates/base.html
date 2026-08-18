@@ -645,7 +645,7 @@
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 <script>
 // ── Init AOS ────────────────────────────────────────────
-AOS.init({ duration: 650, once: true, offset: 70 });
+
 
 // ── Navbar mobile ────────────────────────────────────────
 function toggleMobile() {
@@ -1130,6 +1130,46 @@ if (fbMenu) {
   } else {
     bindThemeBtn();
   }
+})();
+</script>
+
+<!-- AOS Init robuste — garanti même si CDN lent -->
+<script>
+(function() {
+  function initAOS() {
+    if (typeof AOS !== 'undefined') {
+      AOS.init({
+        duration: 650,
+        once: true,
+        offset: 50,
+        disable: function() {
+          // Désactiver sur très petits écrans pour performance
+          return window.innerWidth < 375;
+        }
+      });
+    } else {
+      // AOS pas chargé — rendre tout visible
+      document.querySelectorAll('[data-aos]').forEach(function(el) {
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+      });
+    }
+  }
+
+  // Essayer après chargement complet
+  if (document.readyState === 'complete') {
+    initAOS();
+  } else {
+    window.addEventListener('load', initAOS);
+  }
+
+  // Fallback — forcer visible après 1.5s
+  setTimeout(function() {
+    document.querySelectorAll('[data-aos]').forEach(function(el) {
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+    });
+  }, 1500);
 })();
 </script>
 </body>

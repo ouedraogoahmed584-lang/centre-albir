@@ -765,3 +765,35 @@ html, body { overflow-x: hidden !important; max-width: 100% !important; }
 .delay-300 { animation-delay:0.3s; } .delay-400 { animation-delay:0.4s; }
 @media (prefers-reduced-motion:reduce) { *, *::before, *::after { animation-duration:0.01ms !important; transition-duration:0.01ms !important; } .float-btn-whatsapp { animation:none !important; } }
 :focus-visible { outline: 3px solid var(--color-gold); outline-offset: 3px; border-radius: 4px; }
+
+/* ============================================================
+   FIX AOS — Elements toujours visibles si AOS ne charge pas
+   data-aos elements restent opacity:0 si AOS ne s'init pas
+   Ce CSS garantit la visibilité dans tous les cas
+   ============================================================ */
+
+/* Avant init AOS — éléments visibles par défaut */
+[data-aos] {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: opacity 0.65s ease, transform 0.65s ease !important;
+}
+
+/* Quand AOS est initialisé, il ajoute .aos-init */
+.aos-init[data-aos] {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+/* Quand AOS anime l'élément, il ajoute .aos-animate */
+.aos-init.aos-animate[data-aos] {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* Forcer visibilité hero en particulier */
+.hero *,
+section[class*="hero"] *,
+section[style*="gradient"] * {
+  opacity: 1;
+}
