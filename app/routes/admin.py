@@ -548,3 +548,30 @@ def reset_configuration():
         SiteSettings.set(key, request.form.get('default_value', ''))
         flash(f'✅ Paramètre {key} réinitialisé.', 'info')
     return redirect(url_for('admin.configuration'))
+
+# ══════════════════════════════════════════════════════════════
+# API — Sauvegarde préférence de thème utilisateur
+# Appelée silencieusement par le JS lors du changement de thème
+# ══════════════════════════════════════════════════════════════
+from flask_login import current_user as _current_user
+
+@admin_bp.route('/api/theme/save', methods=['POST'])
+def save_theme_preference():
+    """Sauvegarde la préférence de thème (silencieux)"""
+    from flask import request as _request, jsonify
+    try:
+        data  = _request.get_json(silent=True) or {}
+        theme = data.get('theme', 'albir')
+        valid = ['albir', 'dark', 'academic', 'royal', 'future']
+        if theme not in valid:
+            theme = 'albir'
+        # Sauvegarder en BDD si connecté
+        try:
+            from app.models.site_settings import SiteSettings
+            if _current_user.is_authenticated:
+                SiteSettings.set(f'user_theme_{_current_user.id}', theme)
+        except Exception:
+            pass
+        return jsonify({'ok': True, 'theme': theme})
+    except Exception:
+        return jsonify({'ok': False}), 400

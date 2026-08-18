@@ -10,7 +10,16 @@
 <!DOCTYPE html>
 <html lang="fr" dir="ltr">
 <head>
-  <meta charset="UTF-8" />
+    <!-- ANTI-FOUC : Applique le thème AVANT tout rendu -->
+  <script>
+    (function() {
+      var t = localStorage.getItem('albir-theme') || 'albir';
+      var valid = ['albir','dark','academic','royal','future'];
+      if (valid.indexOf(t) === -1) t = 'albir';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+<meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
@@ -261,7 +270,8 @@
       </div>
 
       <!-- BURGER MOBILE -->
-      <button onclick="toggleMobile()"
+      <button onclick="toggleThemeSwitcher()" style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.20);border-radius:8px;cursor:pointer;font-size:1rem;transition:all 0.2s;" title="Changer le thème" aria-label="Thème">🎨</button>
+          <button onclick="toggleMobile()"
               class="nav-burger-btn"
               style="padding:0.5rem;background:none;border:none;
                      cursor:pointer;color:#fff;align-items:center;
@@ -892,5 +902,116 @@ document.addEventListener('click', function(e) {
      onclick="toggleAdminSidebar()"></div>
 
 {% block scripts_extra %}{% endblock %}
+
+<!-- ══ PANNEAU THÈMES PREMIUM ════════════════════════════ -->
+<div id="theme-switcher-panel">
+
+  <!-- Bouton déclencheur -->
+  <button id="theme-switcher-toggle"
+          onclick="toggleThemeSwitcher()"
+          aria-label="Changer le thème visuel"
+          title="Thèmes Premium">
+    🎨
+  </button>
+
+  <!-- Panneau contenu -->
+  <div id="theme-switcher-content">
+
+    <div class="theme-panel-header">
+      <h3>🎨 Thèmes Premium</h3>
+      <p>Votre style est sauvegardé automatiquement</p>
+    </div>
+
+    <div class="theme-panel-body">
+
+      <!-- Détection auto système -->
+      <div style="background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.20);
+                  border-radius:10px;padding:0.75rem;margin-bottom:0.875rem;
+                  display:flex;align-items:center;gap:0.625rem;">
+        <span style="font-size:1rem;">✨</span>
+        <div>
+          <p style="font-size:0.7rem;font-weight:700;color:var(--text-primary);">
+            Détection automatique
+            <span class="theme-auto-badge">AUTO</span>
+          </p>
+          <p style="font-size:0.65rem;color:var(--text-muted);margin-top:0.1rem;">
+            S'adapte aux préférences de votre appareil
+          </p>
+        </div>
+      </div>
+
+      <!-- Options thèmes -->
+      <div class="theme-options">
+
+        <button class="theme-option" data-theme="albir"
+                onclick="setTheme('albir')"
+                aria-label="Thème Vert Institution Al-Bir">
+          <div class="theme-swatch"
+               style="background:linear-gradient(135deg,#064E3B,#D4AF37);"></div>
+          <div class="theme-option-info">
+            <div class="theme-option-name">🟢 Al-Bir Institution</div>
+            <div class="theme-option-desc">Vert islamique officiel</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </button>
+
+        <button class="theme-option" data-theme="dark"
+                onclick="setTheme('dark')"
+                aria-label="Thème Dark Emerald Luxury">
+          <div class="theme-swatch"
+               style="background:linear-gradient(135deg,#071A16,#EAB308);"></div>
+          <div class="theme-option-info">
+            <div class="theme-option-name">🌑 Dark Emerald Luxury</div>
+            <div class="theme-option-desc">Sombre premium</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </button>
+
+        <button class="theme-option" data-theme="academic"
+                onclick="setTheme('academic')"
+                aria-label="Thème Academic Blue">
+          <div class="theme-swatch"
+               style="background:linear-gradient(135deg,#0F172A,#2563EB);"></div>
+          <div class="theme-option-info">
+            <div class="theme-option-name">🔵 Academic Blue</div>
+            <div class="theme-option-desc">Université internationale</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </button>
+
+        <button class="theme-option" data-theme="royal"
+                onclick="setTheme('royal')"
+                aria-label="Thème Gold Royal Prestige">
+          <div class="theme-swatch"
+               style="background:linear-gradient(135deg,#4A2C16,#C9A227);"></div>
+          <div class="theme-option-info">
+            <div class="theme-option-name">🟡 Gold Royal Prestige</div>
+            <div class="theme-option-desc">Cérémonies & prestige</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </button>
+
+        <button class="theme-option" data-theme="future"
+                onclick="setTheme('future')"
+                aria-label="Thème Future AI Education">
+          <div class="theme-swatch"
+               style="background:linear-gradient(135deg,#060B14,#7C3AED);"></div>
+          <div class="theme-option-info">
+            <div class="theme-option-name">🟣 Future AI Education</div>
+            <div class="theme-option-desc">Innovation 2026</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </button>
+
+      </div>
+
+      <div style="height:1px;background:var(--border-color);margin-bottom:0.75rem;"></div>
+      <p style="font-size:0.65rem;color:var(--text-muted);text-align:center;line-height:1.5;">
+        Choix sauvegardé sur cet appareil<br/>
+        Thème actif sur toutes les pages
+      </p>
+    </div>
+  </div>
+</div>
 </body>
 </html>
