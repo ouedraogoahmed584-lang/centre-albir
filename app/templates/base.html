@@ -713,25 +713,6 @@ document.addEventListener('click', function(e) {
 
 {% block scripts_extra %}{% endblock %}
 
-<!-- ══ PANNEAU THÈMES PREMIUM ════════════════════════════ -->
-<div id="theme-switcher-panel">
-
-  <!-- Bouton déclencheur -->
-  <button id="theme-switcher-toggle"
-          onclick="toggleThemeSwitcher()"
-          aria-label="Changer le thème visuel"
-          title="Thèmes Premium">
-    🎨
-  </button>
-
-  <!-- Panneau contenu -->
-  <div id="theme-switcher-content">
-
-    <div class="theme-panel-header">
-      <h3>🎨 Thèmes Premium</h3>
-      <p>Votre style est sauvegardé automatiquement</p>
-    </div>
-
     <div class="theme-panel-body">
 
       <!-- Détection auto système -->
@@ -1172,5 +1153,89 @@ if (fbMenu) {
   }, 1500);
 })();
 </script>
+
+<!-- ══ PANNEAU THÈMES PREMIUM 5 OPTIONS ════════════════ -->
+<div id="theme-switcher-panel">
+  <button id="theme-switcher-toggle"
+          onclick="toggleThemeSwitcher()"
+          title="Changer le thème" aria-label="Thèmes premium">
+    🎨
+  </button>
+  <div id="theme-switcher-content">
+    <div class="theme-panel-header">
+      <h3>🎨 Thèmes Premium 2026</h3>
+      <p>Votre choix est sauvegardé automatiquement</p>
+    </div>
+    <div class="theme-panel-body">
+
+      <div class="theme-auto-info">
+        <span style="font-size:0.875rem;">✨</span>
+        <div>
+          <p style="font-size:0.7rem;font-weight:700;color:var(--text-primary);">
+            Détection automatique activée
+          </p>
+          <p style="font-size:0.65rem;color:var(--text-muted);margin-top:0.1rem;">
+            S'adapte au mode de votre appareil
+          </p>
+        </div>
+      </div>
+
+      <div class="theme-options">
+
+        <button class="theme-option" data-theme="albir" onclick="setTheme('albir')">
+          <div class="theme-swatch" style="background:linear-gradient(135deg,#043B2C,#D4AF37);"></div>
+          <div class="theme-option-info">
+            <div class="theme-option-name">🌿 Emerald Luxury</div>
+            <div class="theme-option-desc">Vert islamique premium</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </button>
+
+        <button class="theme-option" data-theme="dark" onclick="setTheme('dark')">
+          <div class="theme-swatch" style="background:linear-gradient(135deg,#070B14,#E6C66B);"></div>
+          <div class="theme-option-info">
+            <div class="theme-option-name">🌑 Midnight Gold</div>
+            <div class="theme-option-desc">Luxe nuit & or champagne</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </button>
+
+        <button class="theme-option" data-theme="academic" onclick="setTheme('academic')">
+          <div class="theme-swatch" style="background:linear-gradient(135deg,#123A7A,#F5B700);"></div>
+          <div class="theme-option-info">
+            <div class="theme-option-name">🔵 Academic Blue</div>
+            <div class="theme-option-desc">Université internationale</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </button>
+
+        <button class="theme-option" data-theme="light" onclick="setTheme('light')">
+          <div class="theme-swatch" style="background:linear-gradient(135deg,#FAFAF8,#C89B3C);border:1.5px solid #e0d0b0;"></div>
+          <div class="theme-option-info">
+            <div class="theme-option-name">☀️ Light Professional</div>
+            <div class="theme-option-desc">Cabinet premium clair</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </button>
+
+        <button class="theme-option" data-theme="heritage" onclick="setTheme('heritage')">
+          <div class="theme-swatch" style="background:linear-gradient(135deg,#064E3B,#D6B25E);"></div>
+          <div class="theme-option-info">
+            <div class="theme-option-name">✨ Islamic Heritage</div>
+            <div class="theme-option-desc">Tradition + modernité</div>
+          </div>
+          <span class="theme-check">✓</span>
+        </button>
+
+      </div>
+
+      <div style="height:1px;background:var(--border-color);margin-bottom:0.875rem;"></div>
+      <p style="font-size:0.65rem;color:var(--text-muted);text-align:center;line-height:1.6;">
+        Actif sur toutes les pages du site<br/>
+        Mémorisé sur cet appareil
+      </p>
+    </div>
+  </div>
+</div>
 </body>
 </html>

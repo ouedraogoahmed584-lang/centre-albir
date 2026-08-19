@@ -1,7 +1,7 @@
 ﻿/* ============================================================
-   main.js — Centre Al-Bir — Système Thèmes Premium 2026
-   Gère : 5 thèmes, détection auto, sauvegarde, navbar,
-          mobile menu, admin sidebar, boutons flottants
+   CENTRE AL-BIR — main.js PREMIUM 2026
+   Système de thèmes · Navbar intelligente · Compteurs animés
+   Sidebar admin · Boutons flottants · Gestes mobile
    ============================================================ */
 
 'use strict';
@@ -9,70 +9,47 @@
 /* ══════════════════════════════════════════════════════════
    SYSTÈME DE THÈMES PREMIUM
 ══════════════════════════════════════════════════════════ */
-
 var THEMES = {
-  'albir':    { name: '🟢 Al-Bir Institution',    desc: 'Vert islamique officiel' },
-  'dark':     { name: '🌑 Dark Emerald Luxury',   desc: 'Sombre premium' },
-  'academic': { name: '🔵 Academic Blue',          desc: 'Université internationale' },
-  'royal':    { name: '🟡 Gold Royal Prestige',   desc: 'Cérémonies & prestige' },
-  'future':   { name: '🟣 Future AI Education',   desc: 'Innovation 2026' },
+  albir:    { name: '🌿 Emerald Luxury Al-Bir',   desc: 'Vert islamique premium' },
+  dark:     { name: '🌑 Midnight Gold Premium',   desc: 'Luxe nuit & or champagne' },
+  academic: { name: '🔵 Academic Blue',            desc: 'Université internationale' },
+  light:    { name: '☀️ Light Professional',       desc: 'Cabinet premium clair' },
+  heritage: { name: '✨ Islamic Heritage',          desc: 'Tradition + modernité' },
 };
+var THEME_KEY = 'albir-theme-v2';
+var THEME_META = { albir:'#043B2C', dark:'#070B14', academic:'#123A7A', light:'#102030', heritage:'#064E3B' };
 
-var THEME_KEY  = 'albir-theme';
-var THEME_META = '#064E3B';
-
-var THEME_META_COLORS = {
-  'albir':    '#064E3B',
-  'dark':     '#071A16',
-  'academic': '#0F172A',
-  'royal':    '#4A2C16',
-  'future':   '#060B14',
-};
-
-/**
- * Applique un thème — met à jour html[data-theme]
- * Sauvegarde dans localStorage
- */
 function setTheme(theme, save) {
-  if (typeof save === 'undefined') save = true;
   if (!THEMES[theme]) theme = 'albir';
+  if (typeof save === 'undefined') save = true;
 
-  // Appliquer
   document.documentElement.setAttribute('data-theme', theme);
-
-  // Sauvegarder
-  if (save) localStorage.setItem(THEME_KEY, theme);
-
-  // Meta theme-color (barre mobile)
-  var meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.content = THEME_META_COLORS[theme] || '#064E3B';
-
-  // Mettre à jour les boutons du panel
-  document.querySelectorAll('.theme-option').forEach(function(btn) {
-    btn.classList.toggle('active', btn.dataset.theme === theme);
-  });
-
-  // Sauvegarder en BDD si connecté (optionnel - silencieux)
   if (save) {
-    fetch('/api/theme/save', {
+    localStorage.setItem(THEME_KEY, theme);
+    // Sauvegarder silencieusement en BDD
+    fetch('/admin/api/theme/save', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ theme: theme }),
-    }).catch(function() {}); // Silencieux si erreur
+    }).catch(function() {});
   }
+
+  // Meta theme-color
+  var meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.content = THEME_META[theme] || '#043B2C';
+
+  // Mettre à jour les boutons
+  document.querySelectorAll('.theme-option').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.theme === theme);
+  });
 }
 
-/**
- * Charge le thème sauvegardé ou détecte le système
- */
 function loadTheme() {
   var saved = localStorage.getItem(THEME_KEY);
-
   if (saved && THEMES[saved]) {
     setTheme(saved, false);
     return;
   }
-
   // Détection automatique préférence système
   if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
     setTheme('dark', false);
@@ -81,26 +58,21 @@ function loadTheme() {
   }
 }
 
-// Écouter changement préférence système
+// Écouter changement système
 if (window.matchMedia) {
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
-    var saved = localStorage.getItem(THEME_KEY);
-    // Changer auto seulement si pas de préférence sauvegardée
-    if (!saved) {
+    if (!localStorage.getItem(THEME_KEY)) {
       setTheme(e.matches ? 'dark' : 'albir', false);
     }
   });
 }
 
-/**
- * Ouvre / ferme le panneau de thèmes
- */
 function toggleThemeSwitcher() {
   var panel = document.getElementById('theme-switcher-panel');
   if (panel) panel.classList.toggle('open');
 }
 
-// Fermer si clic extérieur
+// Fermer panneau thèmes si clic extérieur
 document.addEventListener('click', function(e) {
   var panel = document.getElementById('theme-switcher-panel');
   if (panel && panel.classList.contains('open') && !panel.contains(e.target)) {
@@ -108,21 +80,38 @@ document.addEventListener('click', function(e) {
   }
 });
 
+// Exports globaux
+window.setTheme = setTheme;
+window.toggleThemeSwitcher = toggleThemeSwitcher;
+
 /* ══════════════════════════════════════════════════════════
-   NAVBAR
+   NAVBAR INTELLIGENTE — Transparente → Solide au scroll
 ══════════════════════════════════════════════════════════ */
 function initNavbar() {
   var nav = document.getElementById('navbar');
   if (!nav) return;
-  window.addEventListener('scroll', function() {
-    nav.classList.toggle('scrolled', window.scrollY > 60);
-  }, { passive: true });
-}
 
-/* ══════════════════════════════════════════════════════════
-   MENU MOBILE
-══════════════════════════════════════════════════════════ */
-function toggleMobile() {
+  // Pages avec hero sombre → navbar transparente au début
+  var hasHero = document.querySelector('.hero, [class*="hero"]');
+
+  function updateNav() {
+    if (hasHero) {
+      if (window.scrollY > 80) {
+        nav.classList.add('scrolled');
+        nav.classList.remove('transparent');
+      } else {
+        nav.classList.remove('scrolled');
+        nav.classList.add('transparent');
+      }
+    } else {
+      nav.classList.add('solid', 'scrolled');
+    }
+  }
+
+  window.addEventListener('scroll', updateNav, { passive: true });
+  updateNav();
+}
+window.toggleMobile = function() {
   var menu = document.getElementById('mobile-menu');
   var icon = document.getElementById('burger-icon');
   if (!menu) return;
@@ -138,7 +127,7 @@ function toggleMobile() {
     document.body.style.overflow = 'hidden';
     if (icon) icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>';
   }
-}
+};
 window.addEventListener('resize', function() {
   if (window.innerWidth >= 1024) {
     var menu = document.getElementById('mobile-menu');
@@ -148,62 +137,108 @@ window.addEventListener('resize', function() {
 }, { passive: true });
 
 /* ══════════════════════════════════════════════════════════
-   DROPDOWN ESPACE (navbar + flottant)
+   DROPDOWN ESPACE PERSONNEL
 ══════════════════════════════════════════════════════════ */
-function toggleNavEspace() {
+window.toggleNavEspace = function() {
   var dd = document.getElementById('nav-espace-dd');
   if (dd) dd.style.display = (dd.style.display === 'block') ? 'none' : 'block';
-}
+};
 document.addEventListener('click', function(e) {
   var c = document.getElementById('nav-espace');
   var d = document.getElementById('nav-espace-dd');
   if (d && c && !c.contains(e.target)) d.style.display = 'none';
 });
-
-function toggleFloatEspace() {
-  var m = document.getElementById('float-espace-menu');
+window.toggleFloatEspace = function() {
+  var m = document.getElementById('fb-espace-menu');
   if (m) m.style.display = (m.style.display === 'block') ? 'none' : 'block';
-}
+};
 document.addEventListener('click', function(e) {
   var fe = document.getElementById('float-espace');
-  var fm = document.getElementById('float-espace-menu');
-  if (fm && fe && !fe.contains(e.target)) fm.style.display = 'none';
+  var fm = document.getElementById('fb-espace-menu');
+  if (fm && fe && !fe.contains(e.target) &&
+      e.target.id !== 'fb-espace' && !document.getElementById('fb-espace')?.contains(e.target)) {
+    fm.style.display = 'none';
+  }
 });
 
 /* ══════════════════════════════════════════════════════════
-   ADMIN SIDEBAR MOBILE
+   ADMIN SIDEBAR — Tous les modes de fermeture
 ══════════════════════════════════════════════════════════ */
-function toggleAdminSidebar() {
-  var s = document.getElementById('admin-sidebar');
-  var o = document.getElementById('admin-overlay');
-  if (!s) return;
-  var open = s.classList.contains('mobile-open');
-  if (open) {
-    s.classList.remove('mobile-open');
-    if (o) o.classList.remove('active');
-    document.body.style.overflow = '';
-  } else {
-    s.classList.add('mobile-open');
-    if (o) o.classList.add('active');
-    document.body.style.overflow = 'hidden';
+var _sidebarOpen = false;
+var _touchStartX = 0;
+var _touchStartY = 0;
+
+function openAdminSidebar() {
+  if (_sidebarOpen) return;
+  _sidebarOpen = true;
+  var sidebar  = document.getElementById('admin-sidebar');
+  var overlay  = document.getElementById('admin-overlay');
+  if (sidebar) sidebar.classList.add('mobile-open');
+  if (overlay) {
+    overlay.style.display = 'block';
+    requestAnimationFrame(function() { overlay.classList.add('active'); });
   }
+  document.body.style.overflow = 'hidden';
+  history.pushState({ adminMenu: true }, '');
 }
+
 function closeAdminSidebar() {
-  var s = document.getElementById('admin-sidebar');
-  var o = document.getElementById('admin-overlay');
-  if (s) s.classList.remove('mobile-open');
-  if (o) o.classList.remove('active');
+  if (!_sidebarOpen) return;
+  _sidebarOpen = false;
+  var sidebar = document.getElementById('admin-sidebar');
+  var overlay = document.getElementById('admin-overlay');
+  if (sidebar) sidebar.classList.remove('mobile-open');
+  if (overlay) {
+    overlay.classList.remove('active');
+    setTimeout(function() { if (!_sidebarOpen) overlay.style.display = 'none'; }, 320);
+  }
   document.body.style.overflow = '';
 }
+
+window.openAdminSidebar  = openAdminSidebar;
+window.closeAdminSidebar = closeAdminSidebar;
+window.toggleAdminSidebar = function() {
+  if (_sidebarOpen) closeAdminSidebar(); else openAdminSidebar();
+};
+
+// Fermer sur resize desktop
 window.addEventListener('resize', function() {
   if (window.innerWidth >= 1024) closeAdminSidebar();
 }, { passive: true });
 
+// Bouton retour Android
+window.addEventListener('popstate', function(e) {
+  if (_sidebarOpen) { closeAdminSidebar(); history.pushState(null, ''); }
+});
+
+// Swipe gauche pour fermer
+document.addEventListener('touchstart', function(e) {
+  _touchStartX = e.touches[0].clientX;
+  _touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
+document.addEventListener('touchend', function(e) {
+  if (!_sidebarOpen) return;
+  var dx = e.changedTouches[0].clientX - _touchStartX;
+  var dy = Math.abs(e.changedTouches[0].clientY - _touchStartY);
+  if (dx < -65 && dy < 85) closeAdminSidebar();
+}, { passive: true });
+
+// Touche Échap
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && _sidebarOpen) closeAdminSidebar();
+});
+
+function closeSidebarOnMobile() {
+  if (window.innerWidth < 1024) closeAdminSidebar();
+}
+window.closeSidebarOnMobile = closeSidebarOnMobile;
+
 /* ══════════════════════════════════════════════════════════
-   SCROLL TOP
+   SCROLL TOP BUTTON
 ══════════════════════════════════════════════════════════ */
 function initScrollTop() {
-  var btn = document.getElementById('btn-scroll-top');
+  var btn = document.getElementById('fb-scroll');
   if (!btn) return;
   window.addEventListener('scroll', function() {
     btn.classList.toggle('visible', window.scrollY > 400);
@@ -211,15 +246,86 @@ function initScrollTop() {
 }
 
 /* ══════════════════════════════════════════════════════════
-   LOADER
+   DROPDOWN FLOTTANT ESPACE
+══════════════════════════════════════════════════════════ */
+window.toggleFbEspace = function(e) {
+  e && e.stopPropagation();
+  var m = document.getElementById('fb-espace-menu');
+  if (!m) return;
+  m.style.display = (m.style.display === 'block') ? 'none' : 'block';
+};
+
+/* ══════════════════════════════════════════════════════════
+   COMPTEURS ANIMÉS PREMIUM
+══════════════════════════════════════════════════════════ */
+function initCounters() {
+  var counters = document.querySelectorAll('[data-counter]');
+  if (!counters.length) return;
+
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (!entry.isIntersecting) return;
+      var el       = entry.target;
+      var rawValue = el.dataset.counter || '0';
+      var suffix   = el.dataset.suffix  || '';
+      var prefix   = el.dataset.prefix  || '';
+
+      // Extraire valeur numérique
+      var numStr  = rawValue.replace(/[^0-9.]/g, '');
+      var target  = parseFloat(numStr) || 0;
+      var isFloat = rawValue.includes('.');
+      var duration = 1800;
+      var startTime = null;
+
+      function animate(timestamp) {
+        if (!startTime) startTime = timestamp;
+        var progress = Math.min((timestamp - startTime) / duration, 1);
+        // Easing out cubic
+        var eased = 1 - Math.pow(1 - progress, 3);
+        var current = target * eased;
+        var display = isFloat ? current.toFixed(1) : Math.round(current).toLocaleString('fr-FR');
+        el.textContent = prefix + display + suffix;
+        if (progress < 1) requestAnimationFrame(animate);
+      }
+
+      requestAnimationFrame(animate);
+      observer.unobserve(el);
+    });
+  }, { threshold: 0.6 });
+
+  counters.forEach(function(el) { observer.observe(el); });
+}
+
+/* ══════════════════════════════════════════════════════════
+   LOADER PREMIUM
 ══════════════════════════════════════════════════════════ */
 function initLoader() {
   var loader = document.getElementById('page-loader');
   if (!loader) return;
   function hide() { loader.classList.add('hidden'); }
-  if (document.readyState === 'complete') { setTimeout(hide, 250); }
-  else { window.addEventListener('load', function() { setTimeout(hide, 250); }); }
+  if (document.readyState === 'complete') { setTimeout(hide, 280); }
+  else { window.addEventListener('load', function() { setTimeout(hide, 280); }); }
   setTimeout(hide, 4000);
+}
+
+/* ══════════════════════════════════════════════════════════
+   AOS INIT ROBUSTE
+══════════════════════════════════════════════════════════ */
+);
+  } else {
+    // Fallback : rendre tout visible
+    document.querySelectorAll('[data-aos]').forEach(function(el) {
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+    });
+  }
+  // Fallback après 1.5s
+  setTimeout(function() {
+    document.querySelectorAll('[data-aos]').forEach(function(el) {
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+    });
+  }, 1500);
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -229,14 +335,14 @@ function initFlashMessages() {
   var c = document.getElementById('flash-container');
   if (!c) return;
   setTimeout(function() {
-    c.style.transition = 'opacity 0.5s ease';
-    c.style.opacity = '0';
+    c.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    c.style.opacity = '0'; c.style.transform = 'translateX(20px)';
     setTimeout(function() { if (c.parentNode) c.parentNode.removeChild(c); }, 500);
   }, 6000);
 }
 
 /* ══════════════════════════════════════════════════════════
-   RÉSEAU
+   RÉSEAU HORS-LIGNE
 ══════════════════════════════════════════════════════════ */
 function initNetwork() {
   var banner = null;
@@ -246,11 +352,12 @@ function initNetwork() {
       banner.textContent = '📡 Connexion perdue';
       Object.assign(banner.style, {
         position:'fixed', bottom:'5.5rem', left:'50%',
-        transform:'translateX(-50%)',
-        background:'#1F2937', color:'#fff', padding:'0.625rem 1.25rem',
-        borderRadius:'999px', fontSize:'0.8rem', fontWeight:'700',
-        zIndex:'99999', display:'none', whiteSpace:'nowrap',
-        boxShadow:'0 8px 30px rgba(0,0,0,0.3)', maxWidth:'calc(100vw - 2rem)',
+        transform:'translateX(-50%)', background:'#1F2937',
+        color:'#fff', padding:'0.625rem 1.375rem',
+        borderRadius:'999px', fontSize:'0.8125rem',
+        fontWeight:'700', zIndex:'99999', display:'none',
+        whiteSpace:'nowrap', boxShadow:'0 8px 32px rgba(0,0,0,0.3)',
+        maxWidth:'calc(100vw - 2rem)',
       });
       document.body.appendChild(banner);
     }
@@ -266,56 +373,88 @@ function initNetwork() {
 }
 
 /* ══════════════════════════════════════════════════════════
-   TOAST
+   TOAST NOTIFICATION
 ══════════════════════════════════════════════════════════ */
-function showToast(msg, type) {
+window.showToast = function(msg, type) {
   var colors = { success:'#059669', error:'#DC2626', info:'#2563EB', warning:'#D97706' };
   var t = document.createElement('div');
   Object.assign(t.style, {
     position:'fixed', bottom:'5rem', left:'50%',
-    transform:'translateX(-50%) translateY(8px)',
-    background: colors[type||'success'] || colors.success,
-    color:'#fff', padding:'0.75rem 1.5rem', borderRadius:'999px',
+    transform:'translateX(-50%) translateY(10px)',
+    background: colors[type||'success'], color:'#fff',
+    padding:'0.75rem 1.625rem', borderRadius:'999px',
     fontSize:'0.875rem', fontWeight:'700', zIndex:'99999',
-    boxShadow:'0 8px 30px rgba(0,0,0,0.25)', whiteSpace:'nowrap',
-    opacity:'0', transition:'all 0.3s ease', maxWidth:'calc(100vw - 2rem)',
+    boxShadow:'0 8px 32px rgba(0,0,0,0.28)',
+    whiteSpace:'nowrap', opacity:'0',
+    transition:'all 0.32s cubic-bezier(0.34,1.56,0.64,1)',
+    maxWidth:'calc(100vw - 2rem)',
   });
   t.textContent = msg;
   document.body.appendChild(t);
   requestAnimationFrame(function() {
-    t.style.opacity = '1';
-    t.style.transform = 'translateX(-50%) translateY(0)';
+    t.style.opacity = '1'; t.style.transform = 'translateX(-50%) translateY(0)';
   });
   setTimeout(function() {
-    t.style.opacity = '0';
-    setTimeout(function() { if (t.parentNode) t.parentNode.removeChild(t); }, 300);
-  }, 3500);
-}
+    t.style.opacity = '0'; t.style.transform = 'translateX(-50%) translateY(8px)';
+    setTimeout(function() { if (t.parentNode) t.parentNode.removeChild(t); }, 320);
+  }, 3800);
+};
 
 /* ══════════════════════════════════════════════════════════
-   INIT GLOBAL — DOMContentLoaded
+   LIAISON BOUTON THÈME NAVBAR
+══════════════════════════════════════════════════════════ */
+function bindNavbarThemeBtn() {
+  var btn   = document.getElementById('navbar-theme-btn');
+  var panel = document.getElementById('theme-switcher-panel');
+  if (!btn || !panel) return;
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    panel.classList.toggle('open');
+  });
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   AOS INIT — Animations au scroll
+   Version correcte : laisse AOS masquer/révéler les éléments
+══════════════════════════════════════════════════════════ */
+function initAOS() {
+  if (typeof AOS !== 'undefined') {
+    AOS.init({
+      duration: 700,
+      easing:   'ease-out-cubic',
+      once:     true,
+      offset:   60,
+      delay:    0,
+    });
+  } else {
+    // AOS non chargé (CDN bloqué) — rendre visible proprement
+    document.body.classList.add('aos-failed');
+    console.warn('[Al-Bir] AOS CDN non disponible - fallback activé');
+  }
+}
+/* ══════════════════════════════════════════════════════════
+   INITIALISATION GLOBALE
 ══════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', function() {
-  loadTheme();       // PREMIER — évite le flash
+  // 1. Thème en premier (anti-FOUC)
+  loadTheme();
+
+  // 2. Modules
   initLoader();
   initNavbar();
   initScrollTop();
   initFlashMessages();
   initNetwork();
-});
+  initCounters();
+  bindNavbarThemeBtn();
 
-/* ══════════════════════════════════════════════════════════
-   EXPORTS GLOBAUX — Fonctions accessibles depuis HTML onclick
-   Nécessaire pour que les boutons HTML puissent les appeler
-══════════════════════════════════════════════════════════ */
-window.setTheme            = setTheme;
-window.toggleThemeSwitcher = function() {
-  var panel = document.getElementById('theme-switcher-panel');
-  if (panel) panel.classList.toggle('open');
-};
-window.toggleMobile        = toggleMobile;
-window.toggleNavEspace     = toggleNavEspace;
-window.toggleFloatEspace   = toggleFloatEspace;
-window.toggleAdminSidebar  = toggleAdminSidebar;
-window.closeAdminSidebar   = closeAdminSidebar;
-window.showToast           = showToast;
+  // 3. AOS après chargement complet
+  if (document.readyState === 'complete') { initAOS(); }
+  else { window.addEventListener('load', initAOS); }
+
+  // 4. Resize
+  window.addEventListener('resize', function() {
+    if (window.innerWidth >= 1024) closeAdminSidebar();
+  }, { passive: true });
+});
