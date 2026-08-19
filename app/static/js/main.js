@@ -1,56 +1,32 @@
-﻿/* ============================================================
-   CENTRE AL-BIR — main.js PREMIUM 2026
-   Système de thèmes · Navbar intelligente · Compteurs animés
-   Sidebar admin · Boutons flottants · Gestes mobile
-   ============================================================ */
-
+/* Centre Al-Bir — main.js PROPRE */
 'use strict';
 
-/* ══════════════════════════════════════════════════════════
-   SYSTÈME DE THÈMES PREMIUM
-══════════════════════════════════════════════════════════ */
-var THEMES = {
-  albir:    { name: '🌿 Emerald Luxury Al-Bir',   desc: 'Vert islamique premium' },
-  dark:     { name: '🌑 Midnight Gold Premium',   desc: 'Luxe nuit & or champagne' },
-  academic: { name: '🔵 Academic Blue',            desc: 'Université internationale' },
-  light:    { name: '☀️ Light Professional',       desc: 'Cabinet premium clair' },
-  heritage: { name: '✨ Islamic Heritage',          desc: 'Tradition + modernité' },
-};
+/* THÈMES */
+var THEMES = { albir:1, dark:1, academic:1, light:1, heritage:1 };
 var THEME_KEY = 'albir-theme-v2';
-var THEME_META = { albir:'#043B2C', dark:'#070B14', academic:'#123A7A', light:'#102030', heritage:'#064E3B' };
+var THEME_COLORS = { albir:'#043B2C', dark:'#070B14', academic:'#123A7A', light:'#102030', heritage:'#064E3B' };
 
 function setTheme(theme, save) {
   if (!THEMES[theme]) theme = 'albir';
   if (typeof save === 'undefined') save = true;
-
   document.documentElement.setAttribute('data-theme', theme);
-  if (save) {
-    localStorage.setItem(THEME_KEY, theme);
-    // Sauvegarder silencieusement en BDD
-    fetch('/admin/api/theme/save', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ theme: theme }),
-    }).catch(function() {});
-  }
-
-  // Meta theme-color
+  if (save) localStorage.setItem(THEME_KEY, theme);
   var meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.content = THEME_META[theme] || '#043B2C';
-
-  // Mettre à jour les boutons
+  if (meta) meta.content = THEME_COLORS[theme] || '#043B2C';
   document.querySelectorAll('.theme-option').forEach(function(btn) {
     btn.classList.toggle('active', btn.dataset.theme === theme);
   });
+  if (save) {
+    fetch('/admin/api/theme/save', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({theme:theme})
+    }).catch(function(){});
+  }
 }
 
 function loadTheme() {
   var saved = localStorage.getItem(THEME_KEY);
-  if (saved && THEMES[saved]) {
-    setTheme(saved, false);
-    return;
-  }
-  // Détection automatique préférence système
+  if (saved && THEMES[saved]) { setTheme(saved, false); return; }
   if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
     setTheme('dark', false);
   } else {
@@ -58,59 +34,32 @@ function loadTheme() {
   }
 }
 
-// Écouter changement système
-if (window.matchMedia) {
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
-    if (!localStorage.getItem(THEME_KEY)) {
-      setTheme(e.matches ? 'dark' : 'albir', false);
-    }
-  });
-}
-
 function toggleThemeSwitcher() {
-  var panel = document.getElementById('theme-switcher-panel');
-  if (panel) panel.classList.toggle('open');
+  var p = document.getElementById('theme-switcher-panel');
+  if (p) p.classList.toggle('open');
 }
 
-// Fermer panneau thèmes si clic extérieur
 document.addEventListener('click', function(e) {
-  var panel = document.getElementById('theme-switcher-panel');
-  if (panel && panel.classList.contains('open') && !panel.contains(e.target)) {
-    panel.classList.remove('open');
+  var p = document.getElementById('theme-switcher-panel');
+  if (p && p.classList.contains('open') && !p.contains(e.target)) {
+    p.classList.remove('open');
   }
 });
 
-// Exports globaux
+/* EXPORTS GLOBAUX */
 window.setTheme = setTheme;
 window.toggleThemeSwitcher = toggleThemeSwitcher;
 
-/* ══════════════════════════════════════════════════════════
-   NAVBAR INTELLIGENTE — Transparente → Solide au scroll
-══════════════════════════════════════════════════════════ */
+/* NAVBAR */
 function initNavbar() {
   var nav = document.getElementById('navbar');
   if (!nav) return;
-
-  // Pages avec hero sombre → navbar transparente au début
-  var hasHero = document.querySelector('.hero, [class*="hero"]');
-
-  function updateNav() {
-    if (hasHero) {
-      if (window.scrollY > 80) {
-        nav.classList.add('scrolled');
-        nav.classList.remove('transparent');
-      } else {
-        nav.classList.remove('scrolled');
-        nav.classList.add('transparent');
-      }
-    } else {
-      nav.classList.add('solid', 'scrolled');
-    }
-  }
-
-  window.addEventListener('scroll', updateNav, { passive: true });
-  updateNav();
+  window.addEventListener('scroll', function() {
+    nav.classList.toggle('scrolled', window.scrollY > 60);
+  }, { passive: true });
 }
+
+/* MENU MOBILE */
 window.toggleMobile = function() {
   var menu = document.getElementById('mobile-menu');
   var icon = document.getElementById('burger-icon');
@@ -136,9 +85,7 @@ window.addEventListener('resize', function() {
   }
 }, { passive: true });
 
-/* ══════════════════════════════════════════════════════════
-   DROPDOWN ESPACE PERSONNEL
-══════════════════════════════════════════════════════════ */
+/* DROPDOWN ESPACE */
 window.toggleNavEspace = function() {
   var dd = document.getElementById('nav-espace-dd');
   if (dd) dd.style.display = (dd.style.display === 'block') ? 'none' : 'block';
@@ -155,63 +102,57 @@ window.toggleFloatEspace = function() {
 document.addEventListener('click', function(e) {
   var fe = document.getElementById('float-espace');
   var fm = document.getElementById('fb-espace-menu');
-  if (fm && fe && !fe.contains(e.target) &&
-      e.target.id !== 'fb-espace' && !document.getElementById('fb-espace')?.contains(e.target)) {
-    fm.style.display = 'none';
-  }
+  if (fm && fe && !fe.contains(e.target)) fm.style.display = 'none';
 });
+window.toggleFbEspace = function(e) {
+  if (e) e.stopPropagation();
+  var m = document.getElementById('fb-espace-menu');
+  if (m) m.style.display = (m.style.display === 'block') ? 'none' : 'block';
+};
 
-/* ══════════════════════════════════════════════════════════
-   ADMIN SIDEBAR — Tous les modes de fermeture
-══════════════════════════════════════════════════════════ */
+/* ADMIN SIDEBAR */
 var _sidebarOpen = false;
 var _touchStartX = 0;
 var _touchStartY = 0;
 
-function openAdminSidebar() {
+window.openAdminSidebar = function() {
   if (_sidebarOpen) return;
   _sidebarOpen = true;
-  var sidebar  = document.getElementById('admin-sidebar');
-  var overlay  = document.getElementById('admin-overlay');
-  if (sidebar) sidebar.classList.add('mobile-open');
-  if (overlay) {
-    overlay.style.display = 'block';
-    requestAnimationFrame(function() { overlay.classList.add('active'); });
-  }
+  var s = document.getElementById('admin-sidebar');
+  var o = document.getElementById('admin-overlay');
+  if (s) s.classList.add('mobile-open');
+  if (o) { o.style.display = 'block'; requestAnimationFrame(function() { o.classList.add('active'); }); }
   document.body.style.overflow = 'hidden';
   history.pushState({ adminMenu: true }, '');
-}
-
-function closeAdminSidebar() {
-  if (!_sidebarOpen) return;
-  _sidebarOpen = false;
-  var sidebar = document.getElementById('admin-sidebar');
-  var overlay = document.getElementById('admin-overlay');
-  if (sidebar) sidebar.classList.remove('mobile-open');
-  if (overlay) {
-    overlay.classList.remove('active');
-    setTimeout(function() { if (!_sidebarOpen) overlay.style.display = 'none'; }, 320);
-  }
-  document.body.style.overflow = '';
-}
-
-window.openAdminSidebar  = openAdminSidebar;
-window.closeAdminSidebar = closeAdminSidebar;
-window.toggleAdminSidebar = function() {
-  if (_sidebarOpen) closeAdminSidebar(); else openAdminSidebar();
 };
 
-// Fermer sur resize desktop
+window.closeAdminSidebar = function() {
+  if (!_sidebarOpen) return;
+  _sidebarOpen = false;
+  var s = document.getElementById('admin-sidebar');
+  var o = document.getElementById('admin-overlay');
+  if (s) s.classList.remove('mobile-open');
+  if (o) { o.classList.remove('active'); setTimeout(function() { if (!_sidebarOpen) o.style.display = 'none'; }, 320); }
+  document.body.style.overflow = '';
+};
+
+window.toggleAdminSidebar = function() {
+  if (_sidebarOpen) window.closeAdminSidebar();
+  else window.openAdminSidebar();
+};
+
+window.closeSidebarOnMobile = function() {
+  if (window.innerWidth < 1024) window.closeAdminSidebar();
+};
+
 window.addEventListener('resize', function() {
-  if (window.innerWidth >= 1024) closeAdminSidebar();
+  if (window.innerWidth >= 1024) window.closeAdminSidebar();
 }, { passive: true });
 
-// Bouton retour Android
-window.addEventListener('popstate', function(e) {
-  if (_sidebarOpen) { closeAdminSidebar(); history.pushState(null, ''); }
+window.addEventListener('popstate', function() {
+  if (_sidebarOpen) { window.closeAdminSidebar(); history.pushState(null, ''); }
 });
 
-// Swipe gauche pour fermer
 document.addEventListener('touchstart', function(e) {
   _touchStartX = e.touches[0].clientX;
   _touchStartY = e.touches[0].clientY;
@@ -221,22 +162,14 @@ document.addEventListener('touchend', function(e) {
   if (!_sidebarOpen) return;
   var dx = e.changedTouches[0].clientX - _touchStartX;
   var dy = Math.abs(e.changedTouches[0].clientY - _touchStartY);
-  if (dx < -65 && dy < 85) closeAdminSidebar();
+  if (dx < -65 && dy < 85) window.closeAdminSidebar();
 }, { passive: true });
 
-// Touche Échap
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape' && _sidebarOpen) closeAdminSidebar();
+  if (e.key === 'Escape' && _sidebarOpen) window.closeAdminSidebar();
 });
 
-function closeSidebarOnMobile() {
-  if (window.innerWidth < 1024) closeAdminSidebar();
-}
-window.closeSidebarOnMobile = closeSidebarOnMobile;
-
-/* ══════════════════════════════════════════════════════════
-   SCROLL TOP BUTTON
-══════════════════════════════════════════════════════════ */
+/* SCROLL TOP */
 function initScrollTop() {
   var btn = document.getElementById('fb-scroll');
   if (!btn) return;
@@ -245,60 +178,7 @@ function initScrollTop() {
   }, { passive: true });
 }
 
-/* ══════════════════════════════════════════════════════════
-   DROPDOWN FLOTTANT ESPACE
-══════════════════════════════════════════════════════════ */
-window.toggleFbEspace = function(e) {
-  e && e.stopPropagation();
-  var m = document.getElementById('fb-espace-menu');
-  if (!m) return;
-  m.style.display = (m.style.display === 'block') ? 'none' : 'block';
-};
-
-/* ══════════════════════════════════════════════════════════
-   COMPTEURS ANIMÉS PREMIUM
-══════════════════════════════════════════════════════════ */
-function initCounters() {
-  var counters = document.querySelectorAll('[data-counter]');
-  if (!counters.length) return;
-
-  var observer = new IntersectionObserver(function(entries) {
-    entries.forEach(function(entry) {
-      if (!entry.isIntersecting) return;
-      var el       = entry.target;
-      var rawValue = el.dataset.counter || '0';
-      var suffix   = el.dataset.suffix  || '';
-      var prefix   = el.dataset.prefix  || '';
-
-      // Extraire valeur numérique
-      var numStr  = rawValue.replace(/[^0-9.]/g, '');
-      var target  = parseFloat(numStr) || 0;
-      var isFloat = rawValue.includes('.');
-      var duration = 1800;
-      var startTime = null;
-
-      function animate(timestamp) {
-        if (!startTime) startTime = timestamp;
-        var progress = Math.min((timestamp - startTime) / duration, 1);
-        // Easing out cubic
-        var eased = 1 - Math.pow(1 - progress, 3);
-        var current = target * eased;
-        var display = isFloat ? current.toFixed(1) : Math.round(current).toLocaleString('fr-FR');
-        el.textContent = prefix + display + suffix;
-        if (progress < 1) requestAnimationFrame(animate);
-      }
-
-      requestAnimationFrame(animate);
-      observer.unobserve(el);
-    });
-  }, { threshold: 0.6 });
-
-  counters.forEach(function(el) { observer.observe(el); });
-}
-
-/* ══════════════════════════════════════════════════════════
-   LOADER PREMIUM
-══════════════════════════════════════════════════════════ */
+/* LOADER */
 function initLoader() {
   var loader = document.getElementById('page-loader');
   if (!loader) return;
@@ -308,42 +188,53 @@ function initLoader() {
   setTimeout(hide, 4000);
 }
 
-/* ══════════════════════════════════════════════════════════
-   AOS INIT ROBUSTE
-══════════════════════════════════════════════════════════ */
-);
+/* AOS INIT */
+function initAOS() {
+  if (typeof AOS !== 'undefined') {
+    AOS.init({ duration: 700, easing: 'ease-out-cubic', once: true, offset: 60 });
   } else {
-    // Fallback : rendre tout visible
-    document.querySelectorAll('[data-aos]').forEach(function(el) {
-      el.style.opacity = '1';
-      el.style.transform = 'none';
-    });
+    document.body.classList.add('aos-failed');
   }
-  // Fallback après 1.5s
-  setTimeout(function() {
-    document.querySelectorAll('[data-aos]').forEach(function(el) {
-      el.style.opacity = '1';
-      el.style.transform = 'none';
-    });
-  }, 1500);
 }
 
-/* ══════════════════════════════════════════════════════════
-   FLASH AUTO-CLOSE
-══════════════════════════════════════════════════════════ */
-function initFlashMessages() {
+/* COMPTEURS ANIMÉS */
+function initCounters() {
+  var counters = document.querySelectorAll('[data-counter]');
+  if (!counters.length) return;
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (!entry.isIntersecting) return;
+      var el = entry.target;
+      var target = parseFloat((el.dataset.counter || '0').replace(/[^0-9.]/g, '')) || 0;
+      var suffix = el.dataset.suffix || '';
+      var start = null;
+      var duration = 1800;
+      function step(ts) {
+        if (!start) start = ts;
+        var progress = Math.min((ts - start) / duration, 1);
+        var eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.round(target * eased).toLocaleString('fr-FR') + suffix;
+        if (progress < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+      observer.unobserve(el);
+    });
+  }, { threshold: 0.6 });
+  counters.forEach(function(el) { observer.observe(el); });
+}
+
+/* FLASH */
+function initFlash() {
   var c = document.getElementById('flash-container');
   if (!c) return;
   setTimeout(function() {
-    c.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-    c.style.opacity = '0'; c.style.transform = 'translateX(20px)';
+    c.style.transition = 'opacity 0.5s ease';
+    c.style.opacity = '0';
     setTimeout(function() { if (c.parentNode) c.parentNode.removeChild(c); }, 500);
   }, 6000);
 }
 
-/* ══════════════════════════════════════════════════════════
-   RÉSEAU HORS-LIGNE
-══════════════════════════════════════════════════════════ */
+/* RÉSEAU */
 function initNetwork() {
   var banner = null;
   window.addEventListener('offline', function() {
@@ -354,10 +245,9 @@ function initNetwork() {
         position:'fixed', bottom:'5.5rem', left:'50%',
         transform:'translateX(-50%)', background:'#1F2937',
         color:'#fff', padding:'0.625rem 1.375rem',
-        borderRadius:'999px', fontSize:'0.8125rem',
-        fontWeight:'700', zIndex:'99999', display:'none',
-        whiteSpace:'nowrap', boxShadow:'0 8px 32px rgba(0,0,0,0.3)',
-        maxWidth:'calc(100vw - 2rem)',
+        borderRadius:'999px', fontSize:'0.8rem', fontWeight:'700',
+        zIndex:'99999', display:'none', whiteSpace:'nowrap',
+        boxShadow:'0 8px 32px rgba(0,0,0,0.3)', maxWidth:'calc(100vw - 2rem)'
       });
       document.body.appendChild(banner);
     }
@@ -372,9 +262,7 @@ function initNetwork() {
   });
 }
 
-/* ══════════════════════════════════════════════════════════
-   TOAST NOTIFICATION
-══════════════════════════════════════════════════════════ */
+/* TOAST */
 window.showToast = function(msg, type) {
   var colors = { success:'#059669', error:'#DC2626', info:'#2563EB', warning:'#D97706' };
   var t = document.createElement('div');
@@ -384,26 +272,24 @@ window.showToast = function(msg, type) {
     background: colors[type||'success'], color:'#fff',
     padding:'0.75rem 1.625rem', borderRadius:'999px',
     fontSize:'0.875rem', fontWeight:'700', zIndex:'99999',
-    boxShadow:'0 8px 32px rgba(0,0,0,0.28)',
-    whiteSpace:'nowrap', opacity:'0',
-    transition:'all 0.32s cubic-bezier(0.34,1.56,0.64,1)',
-    maxWidth:'calc(100vw - 2rem)',
+    boxShadow:'0 8px 32px rgba(0,0,0,0.28)', whiteSpace:'nowrap',
+    opacity:'0', transition:'all 0.32s ease',
+    maxWidth:'calc(100vw - 2rem)'
   });
   t.textContent = msg;
   document.body.appendChild(t);
   requestAnimationFrame(function() {
-    t.style.opacity = '1'; t.style.transform = 'translateX(-50%) translateY(0)';
+    t.style.opacity = '1';
+    t.style.transform = 'translateX(-50%) translateY(0)';
   });
   setTimeout(function() {
-    t.style.opacity = '0'; t.style.transform = 'translateX(-50%) translateY(8px)';
+    t.style.opacity = '0';
     setTimeout(function() { if (t.parentNode) t.parentNode.removeChild(t); }, 320);
   }, 3800);
 };
 
-/* ══════════════════════════════════════════════════════════
-   LIAISON BOUTON THÈME NAVBAR
-══════════════════════════════════════════════════════════ */
-function bindNavbarThemeBtn() {
+/* BOUTON THÈME NAVBAR */
+function bindNavThemeBtn() {
   var btn   = document.getElementById('navbar-theme-btn');
   var panel = document.getElementById('theme-switcher-panel');
   if (!btn || !panel) return;
@@ -413,48 +299,16 @@ function bindNavbarThemeBtn() {
   });
 }
 
-
-/* ══════════════════════════════════════════════════════════
-   AOS INIT — Animations au scroll
-   Version correcte : laisse AOS masquer/révéler les éléments
-══════════════════════════════════════════════════════════ */
-function initAOS() {
-  if (typeof AOS !== 'undefined') {
-    AOS.init({
-      duration: 700,
-      easing:   'ease-out-cubic',
-      once:     true,
-      offset:   60,
-      delay:    0,
-    });
-  } else {
-    // AOS non chargé (CDN bloqué) — rendre visible proprement
-    document.body.classList.add('aos-failed');
-    console.warn('[Al-Bir] AOS CDN non disponible - fallback activé');
-  }
-}
-/* ══════════════════════════════════════════════════════════
-   INITIALISATION GLOBALE
-══════════════════════════════════════════════════════════ */
+/* INIT GLOBAL */
 document.addEventListener('DOMContentLoaded', function() {
-  // 1. Thème en premier (anti-FOUC)
   loadTheme();
-
-  // 2. Modules
   initLoader();
   initNavbar();
   initScrollTop();
-  initFlashMessages();
+  initFlash();
   initNetwork();
   initCounters();
-  bindNavbarThemeBtn();
-
-  // 3. AOS après chargement complet
+  bindNavThemeBtn();
   if (document.readyState === 'complete') { initAOS(); }
   else { window.addEventListener('load', initAOS); }
-
-  // 4. Resize
-  window.addEventListener('resize', function() {
-    if (window.innerWidth >= 1024) closeAdminSidebar();
-  }, { passive: true });
 });
