@@ -2062,3 +2062,125 @@ html, body { overflow-x: hidden !important; max-width: 100% !important; }
     max-width: 260px !important;
   }
 }
+/* ============================================================
+   FIX MENU MOBILE — Centre Al-Bir
+   Positionnement correct sous la navbar
+   Animation fluide professionnelle
+   ============================================================ */
+
+/* Menu mobile — structure de base */
+#mobile-menu {
+  position: fixed;
+  top: 68px;           /* juste sous la navbar */
+  left: 0;
+  right: 0;
+  z-index: 999;        /* sous navbar (1000) mais au-dessus du reste */
+  max-height: 0;
+  overflow: hidden;
+  background: rgba(2, 30, 21, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  transition: max-height 0.42s cubic-bezier(0.4,0,0.2,1),
+              opacity 0.35s ease;
+  opacity: 0;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+}
+
+/* Menu ouvert */
+#mobile-menu.open {
+  max-height: 100svh;
+  opacity: 1;
+}
+
+/* Liens du menu mobile */
+#mobile-menu a {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.9375rem 1.25rem;
+  border-radius: 12px;
+  color: rgba(255,255,255,0.85);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+#mobile-menu a::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(to bottom, #D4AF37, #B8960C);
+  transform: scaleY(0);
+  transition: transform 0.2s ease;
+  border-radius: 0 2px 2px 0;
+}
+#mobile-menu a:hover {
+  background: rgba(255,255,255,0.09);
+  color: #E8C472;
+  padding-left: 1.625rem;
+}
+#mobile-menu a:hover::before {
+  transform: scaleY(1);
+}
+
+/* Bouton inscription dans menu mobile */
+#mobile-menu .mobile-cta {
+  display: block;
+  text-align: center;
+  padding: 1rem;
+  background: linear-gradient(135deg, #D4AF37, #E8C472);
+  color: #021E15;
+  border-radius: 14px;
+  font-weight: 800;
+  font-size: 0.9375rem;
+  text-decoration: none;
+  margin: 0.5rem 0.25rem 0;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(212,175,55,0.35);
+}
+#mobile-menu .mobile-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(212,175,55,0.45);
+  padding-left: 1rem;
+}
+#mobile-menu .mobile-cta::before { display: none; }
+
+/* Cacher menu mobile sur desktop */
+@media (min-width: 1024px) {
+  #mobile-menu {
+    display: none !important;
+  }
+}
+
+/* Cacher menu mobile public sur pages admin */
+body.admin-page #mobile-menu {
+  display: none !important;
+}
+
+/* Bannière inscription — ajuster top si menu mobile ouvert */
+#mobile-menu.open ~ * #enrollment-banner,
+#enrollment-banner {
+  position: relative;
+  z-index: 200;
+}
+
+/* Navbar scrolled avec menu ouvert */
+#navbar.scrolled #mobile-menu.open {
+  top: 68px;
+}
+
+/* Admin sidebar CSS unifié */
+@media (min-width: 1024px) {
+  .admin-sidebar {
+    top: 68px !important;
+    height: calc(100vh - 68px) !important;
+    transform: translateX(0) !important;
+    z-index: 400 !important;
+  }
+}
