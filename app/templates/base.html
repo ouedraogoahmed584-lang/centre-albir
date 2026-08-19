@@ -608,13 +608,7 @@
            onmouseout="this.style.color='rgba(255,255,255,0.25)'">
           Admin
         </a>
-        <a href="{{ url_for('auth.changer_mot_de_passe') }}"
-           style="color:rgba(255,255,255,0.25);font-size:0.75rem;
-                  text-decoration:none;transition:color 0.2s;"
-           onmouseover="this.style.color='#C89B3C'"
-           onmouseout="this.style.color='rgba(255,255,255,0.25)'">
-          Mot de passe
-        </a>
+        
         <span style="color:rgba(255,255,255,0.15);font-size:0.75rem;">
           {{ site.school_year }}
         </span>
@@ -713,9 +707,7 @@
         </a>
       {% endif %}
       <div style="height:1px;background:var(--border-color);margin:0.375rem 0;"></div>
-      <a href="{{ url_for('auth.changer_mot_de_passe') }}" class="dd-link">
-        🔑 Changer mot de passe
-      </a>
+      
     </div>
   </div>
 </div>
