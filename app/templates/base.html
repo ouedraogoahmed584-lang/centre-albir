@@ -96,31 +96,6 @@
 </div>
 
 <!-- ══════════════════════════════════════════════════════
-     BANNIÈRE INSCRIPTION
-══════════════════════════════════════════════════════ -->
-<div id="enroll-banner"
-     style="background:linear-gradient(90deg,#C89B3C,#E8C472,#C89B3C);
-            color:#022C22;padding:0.5rem 1rem;text-align:center;
-            font-size:0.8125rem;font-weight:700;position:relative;
-            z-index:200;">
-  🟢 <strong>INSCRIPTIONS OUVERTES — {{ site.school_year }}</strong>
-  &nbsp;|&nbsp; Du {{ site.enroll_start }} au {{ site.enroll_end }}
-  <a href="{{ url_for('public.admissions') }}"
-     style="margin-left:0.75rem;background:#022C22;color:#E8C472;
-            padding:0.25rem 0.875rem;border-radius:999px;
-            font-size:0.7rem;text-decoration:none;font-weight:800;">
-    S'inscrire →
-  </a>
-  <button onclick="document.getElementById('enroll-banner').style.display='none'"
-          style="position:absolute;right:0.75rem;top:50%;
-                 transform:translateY(-50%);background:none;border:none;
-                 font-size:1.25rem;cursor:pointer;color:#022C22;
-                 line-height:1;font-weight:700;">
-    ×
-  </button>
-</div>
-
-<!-- ══════════════════════════════════════════════════════
      NAVBAR
 ══════════════════════════════════════════════════════ -->
 <nav id="navbar"
