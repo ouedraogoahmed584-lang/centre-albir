@@ -215,7 +215,7 @@
                     border-radius:16px;
                     box-shadow:0 16px 48px rgba(0,0,0,0.20);
                     overflow:hidden;z-index:500;">
-          <div style="background:linear-gradient(135deg,#021E15,#043B2C);padding:0.875rem 1rem;">
+          <div style="background:var(--gradient-hero);padding:0.875rem 1rem;">
             <p style="color:#C89B3C;font-size:0.65rem;font-weight:800;
                       letter-spacing:0.08em;text-transform:uppercase;">
               Espace Personnel
@@ -365,7 +365,302 @@
     <img src="{{ ad.image_url }}" alt="{{ ad.title }}"
          style="width:100%;height:80px;object-fit:cover;display:block;" />
     {% else %}
-    <div style="background:linear-gradient(135deg,#021E15,#043B2C);padding:0.875rem 1rem;">
+    <div style="background:var(--gradient-hero);height:60px;
+                display:flex;align-items:center;justify-content:center;">
+      <p style="color:#C89B3C;font-weight:700;">{{ ad.title }}</p>
+    </div>
+    {% endif %}
+    {% if ad.link_url %}</a>{% endif %}
+    <span style="position:absolute;top:6px;right:8px;
+                 background:rgba(0,0,0,0.5);color:#fff;
+                 font-size:0.65rem;padding:2px 8px;border-radius:999px;">
+      Annonce
+    </span>
+  </div>
+  {% endif %}
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- ══════════════════════════════════════════════════════
+     CONTENU PRINCIPAL
+══════════════════════════════════════════════════════ -->
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<!-- ══════════════════════════════════════════════════════
+     PUBLICITÉ BANNIÈRE BASSE
+══════════════════════════════════════════════════════ -->
+{% if ads.get('banner_bottom') %}
+<div style="max-width:1280px;margin:0 auto;padding:0.5rem 1.25rem;">
+  {% for ad in ads['banner_bottom'] %}
+  {% if ad.is_currently_active %}
+  <div style="position:relative;border-radius:12px;overflow:hidden;">
+    {% if ad.image_url %}
+    <img src="{{ ad.image_url }}" alt="{{ ad.title }}"
+         style="width:100%;height:80px;object-fit:cover;display:block;" />
+    {% endif %}
+    <span style="position:absolute;top:6px;right:8px;
+                 background:rgba(0,0,0,0.5);color:#fff;
+                 font-size:0.65rem;padding:2px 8px;border-radius:999px;">
+      Annonce
+    </span>
+  </div>
+  {% endif %}
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- ══════════════════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════════════════ -->
+<footer style="background:var(--bg-footer);color:#fff;
+               position:relative;overflow:hidden;">
+  <div style="position:absolute;inset:0;opacity:0.04;"
+       class="islamic-pattern"></div>
+
+  <div style="max-width:1280px;margin:0 auto;
+              padding:4rem 1.25rem 2rem;position:relative;z-index:1;">
+    <div style="display:grid;grid-template-columns:repeat(1,1fr);
+                gap:2.5rem;margin-bottom:3rem;"
+         class="md:grid-cols-2 lg:grid-cols-4">
+
+      <!-- Col 1 — Identité -->
+      <div>
+        <div style="display:flex;align-items:center;gap:0.75rem;
+                    margin-bottom:1.25rem;">
+          <div style="width:48px;height:48px;border-radius:12px;
+                      overflow:hidden;border:2px solid rgba(200,155,60,0.4);
+                      flex-shrink:0;background:rgba(200,155,60,0.1);
+                      display:flex;align-items:center;justify-content:center;">
+            <img src="{{ url_for('static', filename='images/logo.png') }}"
+                 alt="Logo"
+                 onerror="this.style.display='none'"
+                 style="width:100%;height:100%;object-fit:cover;" />
+          </div>
+          <div>
+            <p style="font-weight:700;color:#fff;font-size:0.875rem;">
+              Centre Al-Bir
+            </p>
+            <p class="font-arabic" style="color:#C89B3C;font-size:0.75rem;">
+              مركز البر
+            </p>
+          </div>
+        </div>
+        <p style="color:rgba(255,255,255,0.55);font-size:0.8125rem;
+                  line-height:1.65;margin-bottom:1.25rem;">
+          {{ site.full_name }}. Éducation islamique d'excellence depuis 2023.
+        </p>
+        <div style="background:rgba(255,255,255,0.06);border-radius:12px;
+                    padding:1rem;border:1px solid rgba(255,255,255,0.08);">
+          <p class="font-arabic"
+             style="color:#C89B3C;font-size:0.9375rem;
+                    text-align:right;line-height:1.8;">
+            ﴿ خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ ﴾
+          </p>
+          <p style="color:rgba(255,255,255,0.35);font-size:0.7rem;
+                    margin-top:0.5rem;text-align:right;">
+            — Sahih Al-Bukhari
+          </p>
+        </div>
+      </div>
+
+      <!-- Col 2 — Navigation -->
+      <div>
+        <h4 style="color:#C89B3C;font-size:0.7rem;font-weight:800;
+                   letter-spacing:0.1em;text-transform:uppercase;
+                   margin-bottom:1.25rem;">Navigation</h4>
+        <div style="display:flex;flex-direction:column;gap:0.625rem;">
+          {% for ep, icon, label in [
+            ('public.accueil',    '🏠', 'Accueil'),
+            ('public.a_propos',   'ℹ️', 'À propos'),
+            ('public.programmes', '📚', 'Programmes'),
+            ('public.admissions', '📝', 'Admissions'),
+            ('public.actualites', '📰', 'Actualités'),
+            ('public.galerie',    '🖼️', 'Galerie'),
+            ('public.contact',    '📞', 'Contact'),
+          ] %}
+          <a href="{{ url_for(ep) }}"
+             style="display:flex;align-items:center;gap:0.5rem;
+                    color:rgba(255,255,255,0.55);text-decoration:none;
+                    font-size:0.8125rem;transition:color 0.2s;"
+             onmouseover="this.style.color='#C89B3C'"
+             onmouseout="this.style.color='rgba(255,255,255,0.55)'">
+            <span style="font-size:0.75rem;">{{ icon }}</span>{{ label }}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Col 3 — Programmes -->
+      <div>
+        <h4 style="color:#C89B3C;font-size:0.7rem;font-weight:800;
+                   letter-spacing:0.1em;text-transform:uppercase;
+                   margin-bottom:1.25rem;">Programmes</h4>
+        <div style="display:flex;flex-direction:column;gap:0.625rem;">
+          {% for name, slug in [
+            ('Mémorisation du Coran', 'memorisation-coran'),
+            ('Tajwid',                'tajwid'),
+            ('Tafsir du Coran',       'tafsir'),
+            ('Moutoun fondamentaux',  'moutoun'),
+            ('Sciences Islamiques',   'sciences-islamiques'),
+            ('Programme Français',    'programme-francais'),
+          ] %}
+          <a href="{{ url_for('public.programme_detail', slug=slug) }}"
+             style="color:rgba(255,255,255,0.55);text-decoration:none;
+                    font-size:0.8125rem;transition:color 0.2s;"
+             onmouseover="this.style.color='#C89B3C'"
+             onmouseout="this.style.color='rgba(255,255,255,0.55)'">
+            {{ name }}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Col 4 — Contact -->
+      <div>
+        <h4 style="color:#C89B3C;font-size:0.7rem;font-weight:800;
+                   letter-spacing:0.1em;text-transform:uppercase;
+                   margin-bottom:1.25rem;">Contact</h4>
+        <div style="display:flex;flex-direction:column;gap:0.875rem;">
+          <div style="display:flex;align-items:flex-start;gap:0.75rem;">
+            <span style="color:#C89B3C;margin-top:0.1rem;">📍</span>
+            <span style="color:rgba(255,255,255,0.55);font-size:0.8125rem;">
+              {{ site.address }}
+            </span>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.75rem;">
+            <span style="color:#C89B3C;">🕐</span>
+            <span style="color:rgba(255,255,255,0.55);font-size:0.8125rem;">
+              {{ site.hours }}
+            </span>
+          </div>
+          <a href="tel:{{ site.phone1_raw }}"
+             style="display:flex;align-items:center;gap:0.75rem;
+                    text-decoration:none;transition:color 0.2s;"
+             onmouseover="this.style.color='#C89B3C'"
+             onmouseout="this.style.color='rgba(255,255,255,0.55)'">
+            <span style="color:#C89B3C;">📞</span>
+            <span style="color:rgba(255,255,255,0.55);font-size:0.8125rem;">
+              {{ site.phone1 }}
+            </span>
+          </a>
+          <a href="tel:{{ site.phone2_raw }}"
+             style="display:flex;align-items:center;gap:0.75rem;
+                    text-decoration:none;"
+             onmouseover="this.style.color='#C89B3C'"
+             onmouseout="this.style.color='rgba(255,255,255,0.55)'">
+            <span style="color:#C89B3C;">📱</span>
+            <span style="color:rgba(255,255,255,0.55);font-size:0.8125rem;">
+              {{ site.phone2 }}
+            </span>
+          </a>
+          <a href="mailto:{{ site.email }}"
+             style="display:flex;align-items:center;gap:0.75rem;
+                    text-decoration:none;"
+             onmouseover="this.style.color='#C89B3C'"
+             onmouseout="this.style.color='rgba(255,255,255,0.55)'">
+            <span style="color:#C89B3C;">✉️</span>
+            <span style="color:rgba(255,255,255,0.55);font-size:0.8125rem;">
+              {{ site.email }}
+            </span>
+          </a>
+        </div>
+
+        <!-- Boutons WhatsApp -->
+        <div style="display:flex;gap:0.75rem;margin-top:1.25rem;">
+          <a href="https://wa.me/{{ site.phone2_raw }}" target="_blank"
+             style="display:flex;align-items:center;gap:0.375rem;
+                    padding:0.5rem 1rem;background:#25D366;
+                    color:#fff;border-radius:10px;font-size:0.8rem;
+                    font-weight:700;text-decoration:none;transition:all 0.2s;"
+             onmouseover="this.style.background='#128C7E'"
+             onmouseout="this.style.background='#25D366'">
+            💬 WhatsApp
+          </a>
+          <a href="{{ site.maps_url }}" target="_blank"
+             style="display:flex;align-items:center;gap:0.375rem;
+                    padding:0.5rem 1rem;border:1px solid rgba(255,255,255,0.20);
+                    color:rgba(255,255,255,0.70);border-radius:10px;
+                    font-size:0.8rem;font-weight:700;text-decoration:none;">
+            📍 Maps
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barre basse footer -->
+    <div style="border-top:1px solid rgba(255,255,255,0.08);
+                padding-top:1.5rem;
+                display:flex;flex-direction:column;
+                align-items:center;gap:0.75rem;text-align:center;"
+         class="md:flex-row md:justify-between">
+      <p style="color:rgba(255,255,255,0.30);font-size:0.75rem;">
+        © 2026 Centre Al-Bir. Tous droits réservés.
+        Kienfangu, Ouagadougou, Burkina Faso.
+      </p>
+      <div style="display:flex;align-items:center;gap:1rem;">
+        <a href="{{ url_for('auth.connexion') }}"
+           style="color:rgba(255,255,255,0.25);font-size:0.75rem;
+                  text-decoration:none;transition:color 0.2s;"
+           onmouseover="this.style.color='#C89B3C'"
+           onmouseout="this.style.color='rgba(255,255,255,0.25)'">
+          Admin
+        </a>
+        
+        <span style="color:rgba(255,255,255,0.15);font-size:0.75rem;">
+          {{ site.school_year }}
+        </span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ══════════════════════════════════════════════════════
+     BOUTONS FLOTTANTS (UNE SEULE FOIS ICI)
+══════════════════════════════════════════════════════ -->
+
+<!-- WhatsApp -->
+<a href="https://wa.me/{{ site.phone2_raw }}"
+   target="_blank"
+   rel="noopener noreferrer"
+   id="btn-whatsapp"
+   class="float-btn float-btn-whatsapp"
+   aria-label="WhatsApp">
+  <svg width="26" height="26" fill="white" viewBox="0 0 24 24">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+  </svg>
+</a>
+
+<!-- Scroll Top -->
+<button id="btn-scroll-top" class="float-btn float-btn-scroll" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Haut de page"><svg width="20" height="20" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 15l-6-6-6 6"/></svg></button>
+
+
+<!-- Espace Personnel -->
+<div id="float-espace" style="position:fixed;right:1.5rem;
+     bottom:8rem;z-index:999;">
+  <button class="float-btn float-btn-espace"
+          onclick="toggleFloatEspace()"
+          aria-label="Espace personnel">
+    <svg width="24" height="24" fill="none" stroke="white"
+         stroke-width="2" viewBox="0 0 24 24">
+      <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+      <circle cx="12" cy="7" r="4"/>
+    </svg>
+  </button>
+
+  <!-- Menu espace -->
+  <div id="float-espace-menu"
+       style="display:none;position:absolute;right:calc(100% + 12px);
+              bottom:0;width:220px;
+              background:var(--bg-card);
+              border:1.5px solid var(--border-card);
+              border-radius:16px;
+              box-shadow:0 16px 48px rgba(0,0,0,0.25);
+              overflow:hidden;">
+    <div style="background:var(--gradient-hero);
+                padding:0.875rem 1rem;">
       <p style="color:#C89B3C;font-size:0.65rem;font-weight:800;
                 letter-spacing:0.08em;text-transform:uppercase;">
         Espace Personnel
