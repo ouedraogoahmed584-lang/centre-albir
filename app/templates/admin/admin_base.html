@@ -400,9 +400,5 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 </script>
-
-<script>
-/* Marquer cette page comme admin pour cacher le menu mobile public */
-document.body.classList.add('admin-page');
-</script>{% block admin_scripts %}{% endblock %}
+{% block admin_scripts %}{% endblock %}
 {% endblock %}
