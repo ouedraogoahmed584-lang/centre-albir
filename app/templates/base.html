@@ -164,69 +164,7 @@
         ✍️ S'inscrire
       </a>
 
-      <!-- Espace Personnel navbar -->
-      <div style="position:relative;" id="nav-espace">
-        <button onclick="toggleNavEspace()"
-                style="display:flex;align-items:center;gap:0.5rem;
-                       padding:0.5rem 0.875rem;
-                       border:2px solid rgba(200,155,60,0.45);
-                       background:transparent;color:#C89B3C;
-                       border-radius:10px;font-size:0.8rem;
-                       font-weight:700;cursor:pointer;
-                       transition:all 0.3s;">
-          <svg width="16" height="16" fill="none" stroke="currentColor"
-               stroke-width="2" viewBox="0 0 24 24">
-            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-          </svg>
-          <span class="hidden sm:inline">Espace</span>
-        </button>
-
-        <!-- Dropdown -->
-        <div id="nav-espace-dd"
-             style="display:none;position:absolute;right:0;top:calc(100% + 8px);width:240px;background:var(--bg-card);border:1.5px solid var(--border-card);border-radius:16px;box-shadow:0 16px 48px rgba(0,0,0,0.25);overflow:hidden;z-index:9999;">
-          <div style="background:var(--gradient-hero);padding:0.875rem 1rem;">
-            <p style="color:#C89B3C;font-size:0.65rem;font-weight:800;
-                      letter-spacing:0.08em;text-transform:uppercase;">
-              Espace Personnel
-            </p>
-          </div>
-          <div style="padding:0.5rem;">
-            {% if current_user.is_authenticated %}
-              {% if current_user.is_admin %}
-              <a href="{{ url_for('admin.dashboard') }}" class="dd-link">
-                ⚙️ Administration
-              </a>
-              {% elif current_user.is_parent %}
-              <a href="{{ url_for('parent.dashboard') }}" class="dd-link">
-                👨‍👩‍👧 Portail Parents
-              </a>
-              {% elif current_user.is_student %}
-              <a href="{{ url_for('student.dashboard') }}" class="dd-link">
-                📚 Espace Élève
-              </a>
-              {% endif %}
-              <div style="height:1px;background:var(--border-color);
-                          margin:0.375rem 0;"></div>
-              <a href="{{ url_for('auth.deconnexion') }}"
-                 class="dd-link" style="color:#EF4444 !important;">
-                🚪 Déconnexion
-              </a>
-            {% else %}
-              <a href="{{ url_for('parent.dashboard') }}" class="dd-link">
-                👨‍👩‍👧 Portail Parents
-              </a>
-              <a href="{{ url_for('student.dashboard') }}" class="dd-link">
-                📚 Espace Élève
-              </a>
-              <div style="height:1px;background:var(--border-color);
-                          margin:0.375rem 0;"></div>
-              <a href="{{ url_for('auth.connexion') }}" class="dd-link">
-                🔐 Administration
-              </a>
-            {% endif %}
-          </div>
-        </div>
+      
       </div>
 
       <!-- Burger mobile -->
