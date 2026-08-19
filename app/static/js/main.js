@@ -1,4 +1,4 @@
-/* Centre Al-Bir — main.js PROPRE */
+﻿/* Centre Al-Bir — main.js PROPRE */
 'use strict';
 
 /* THÈMES */
@@ -95,21 +95,50 @@ document.addEventListener('click', function(e) {
   var d = document.getElementById('nav-espace-dd');
   if (d && c && !c.contains(e.target)) d.style.display = 'none';
 });
-window.toggleFloatEspace = function() {
-  var m = document.getElementById('fb-espace-menu');
-  if (m) m.style.display = (m.style.display === 'block') ? 'none' : 'block';
-};
-document.addEventListener('click', function(e) {
-  var fe = document.getElementById('float-espace');
-  var fm = document.getElementById('fb-espace-menu');
-  if (fm && fe && !fe.contains(e.target)) fm.style.display = 'none';
-});
-window.toggleFbEspace = function(e) {
-  if (e) e.stopPropagation();
-  var m = document.getElementById('fb-espace-menu');
-  if (m) m.style.display = (m.style.display === 'block') ? 'none' : 'block';
+
+
+
+
+
+/* ══ ESPACE PERSONNEL — Menu animé premium ════════════ */
+window.toggleFbEspace = function(event) {
+  if (event) event.stopPropagation();
+
+  var menu = document.getElementById('fb-espace-menu');
+  if (!menu) return;
+
+  var isOpen = menu.style.display === 'block';
+
+  if (isOpen) {
+    // Fermeture animée
+    menu.style.opacity = '0';
+    menu.style.transform = 'scale(0.92) translateX(8px)';
+    setTimeout(function() {
+      menu.style.display = 'none';
+    }, 220);
+  } else {
+    // Ouverture animée
+    menu.style.display = 'block';
+    // Forcer reflow pour que la transition se déclenche
+    menu.offsetHeight;
+    menu.style.opacity = '1';
+    menu.style.transform = 'scale(1) translateX(0)';
+  }
 };
 
+window.toggleFloatEspace = window.toggleFbEspace;
+
+// Fermer si clic extérieur
+document.addEventListener('click', function(e) {
+  var container = document.getElementById('float-espace');
+  var menu      = document.getElementById('fb-espace-menu');
+  if (!menu || !container) return;
+  if (!container.contains(e.target) && menu.style.display === 'block') {
+    menu.style.opacity   = '0';
+    menu.style.transform = 'scale(0.92) translateX(8px)';
+    setTimeout(function() { menu.style.display = 'none'; }, 220);
+  }
+});
 /* ADMIN SIDEBAR */
 var _sidebarOpen = false;
 var _touchStartX = 0;
