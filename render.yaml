@@ -2,8 +2,10 @@ services:
   - type: web
     name: centre-albir
     env: python
+    region: frankfurt
+    plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn wsgi:application
+    startCommand: gunicorn wsgi:application --workers 2 --timeout 120
     envVars:
       - key: FLASK_ENV
         value: production
@@ -13,9 +15,16 @@ services:
         fromDatabase:
           name: albir-db
           property: connectionString
+      - key: ADMIN_EMAIL
+        value: centrealbir96@gmail.com
+      - key: ADMIN_PASSWORD
+        value: 6410
+      - key: ADMIN_NAME
+        value: Cheikh Mohamed Souleimane
 
 databases:
   - name: albir-db
     databaseName: albir
     user: albir_user
     plan: free
+    region: frankfurt
