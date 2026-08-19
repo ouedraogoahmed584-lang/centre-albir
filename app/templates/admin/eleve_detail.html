@@ -1,0 +1,160 @@
+{#
+  admin/eleve_detail.html — Fiche détaillée d'un élève
+  Affiche toutes les informations de l'élève : identité,
+  programme, présences, paiements et historique scolaire.
+  Utilise admin_base.html pour le layout responsive.
+#}
+{% extends "admin/admin_base.html" %}
+
+{% block admin_title %}Fiche Élève{% endblock %}
+
+{% block admin_actions %}
+<a href="{{ url_for('admin.eleves') }}"
+   style="display:inline-flex;align-items:center;gap:0.375rem;
+          padding:0.5rem 0.875rem;
+          background:var(--bg-section-alt);
+          border:1px solid var(--border-color);
+          color:var(--text-secondary);border-radius:8px;
+          font-size:0.75rem;font-weight:700;text-decoration:none;">
+  ← Retour aux élèves
+</a>
+{% endblock %}
+
+{% block admin_content %}
+
+{% if student %}
+<!-- En-tête élève -->
+<div style="background:var(--gradient-hero);border-radius:16px;
+            padding:1.5rem;margin-bottom:1.25rem;
+            position:relative;overflow:hidden;">
+  <div class="islamic-pattern"></div>
+  <div style="position:relative;z-index:1;
+              display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+
+    <!-- Avatar -->
+    <div style="width:64px;height:64px;border-radius:16px;
+                background:var(--gradient-gold);
+                display:flex;align-items:center;justify-content:center;
+                font-weight:900;font-size:1.5rem;color:#022C22;
+                flex-shrink:0;overflow:hidden;">
+      {% if student.photo_url %}
+      <img src="{{ student.photo_url }}" style="width:100%;height:100%;object-fit:cover;" />
+      {% else %}
+      {{ student.full_name[0].upper() if student.full_name else '?' }}
+      {% endif %}
+    </div>
+
+    <!-- Infos -->
+    <div style="flex:1;min-width:0;">
+      <h1 style="font-family:var(--font-serif);font-size:1.25rem;
+                 font-weight:700;color:#fff;margin:0 0 0.25rem;">
+        {{ student.full_name }}
+      </h1>
+      {% if student.student_number %}
+      <p style="color:var(--color-gold);font-size:0.75rem;font-weight:700;font-family:monospace;">
+        {{ student.student_number }}
+      </p>
+      {% endif %}
+      <p style="color:rgba(255,255,255,0.60);font-size:0.75rem;margin-top:0.25rem;">
+        {% if student.program %}{{ student.program.icon }} {{ student.program.name_fr }}{% endif %}
+        · {{ student.school_year }}
+      </p>
+    </div>
+
+    <!-- Statut -->
+    <span style="flex-shrink:0;padding:0.375rem 1rem;border-radius:999px;
+                 font-size:0.75rem;font-weight:800;
+                 {% if student.status == 'active' %}background:#D1FAE5;color:#065F46;
+                 {% else %}background:#F3F4F6;color:#6B7280;{% endif %}">
+      {% if student.status == 'active' %}✅ Actif{% else %}⭕ Inactif{% endif %}
+    </span>
+  </div>
+</div>
+
+<!-- Grille infos -->
+<div style="display:grid;grid-template-columns:1fr;gap:1rem;">
+
+  <!-- Informations générales -->
+  <div class="admin-card">
+    <h2 class="admin-card-title">👤 Informations générales</h2>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0.75rem;">
+      {% for label, value in [
+        ('Nom complet',       student.full_name or '—'),
+        ('Âge',              (student.age|string ~ ' ans') if student.age else '—'),
+        ('Programme',        (student.program.icon ~ ' ' ~ student.program.name_fr) if student.program else '—'),
+        ('Année scolaire',   student.school_year or '—'),
+        ('Date inscription', student.enrollment_date.strftime('%d/%m/%Y') if student.enrollment_date else '—'),
+        ('Statut',           'Actif' if student.status == 'active' else student.status|title),
+      ] %}
+      <div style="padding:0.75rem;background:var(--bg-section-alt);border-radius:10px;">
+        <p style="font-size:0.65rem;color:var(--text-muted);font-weight:800;
+                  text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.25rem;">
+          {{ label }}
+        </p>
+        <p style="font-size:0.875rem;font-weight:600;color:var(--text-primary);">
+          {{ value }}
+        </p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Parent associé -->
+  {% if student.parent %}
+  <div class="admin-card">
+    <h2 class="admin-card-title">👨‍👩‍👧 Parent / Tuteur</h2>
+    <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+      <div style="flex:1;min-width:200px;">
+        <p style="font-weight:700;font-size:0.9rem;color:var(--text-primary);">
+          {{ student.parent.full_name }}
+        </p>
+        {% if student.parent.phone %}
+        <a href="tel:{{ student.parent.phone }}"
+           style="font-size:0.8rem;color:var(--color-primary);text-decoration:none;
+                  display:block;margin-top:0.25rem;">
+          📞 {{ student.parent.phone }}
+        </a>
+        {% endif %}
+        {% if student.parent.whatsapp %}
+        <a href="https://wa.me/{{ student.parent.whatsapp|replace('+','') }}"
+           target="_blank"
+           style="font-size:0.8rem;color:#25D366;text-decoration:none;display:block;">
+          💬 {{ student.parent.whatsapp }}
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Notes -->
+  {% if student.notes %}
+  <div class="admin-card">
+    <h2 class="admin-card-title">📝 Notes</h2>
+    <p style="font-size:0.875rem;color:var(--text-secondary);line-height:1.65;">
+      {{ student.notes }}
+    </p>
+  </div>
+  {% endif %}
+
+</div>
+
+{% else %}
+<div style="background:var(--bg-card);border:2px dashed var(--border-color);
+            border-radius:16px;padding:3rem;text-align:center;">
+  <p style="font-size:3rem;margin-bottom:0.75rem;">👥</p>
+  <h3 style="font-family:var(--font-serif);font-size:1.125rem;
+             font-weight:700;color:var(--text-heading);margin-bottom:0.5rem;">
+    Élève non trouvé
+  </h3>
+  <a href="{{ url_for('admin.eleves') }}"
+     style="display:inline-flex;align-items:center;gap:0.5rem;margin-top:1rem;
+            padding:0.75rem 1.5rem;background:var(--gradient-button);
+            color:#fff;border-radius:12px;font-weight:700;
+            font-size:0.875rem;text-decoration:none;">
+    ← Retour aux élèves
+  </a>
+</div>
+{% endif %}
+
+{% endblock %}
