@@ -364,5 +364,41 @@
 
 
 
+
+<!-- HAMBURGER_FALLBACK : Script de secours garanti -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var btn     = document.getElementById('admin-hamburger');
+  var sidebar = document.getElementById('admin-sidebar');
+  var overlay = document.getElementById('admin-overlay');
+
+  if (!btn || !sidebar) return;
+
+  btn.addEventListener('click', function() {
+    var isOpen = sidebar.classList.contains('mobile-open');
+    if (isOpen) {
+      sidebar.classList.remove('mobile-open');
+      sidebar.style.transform = 'translateX(-100%)';
+      if (overlay) { overlay.classList.remove('active'); overlay.style.display = 'none'; }
+      document.body.style.overflow = '';
+    } else {
+      sidebar.classList.add('mobile-open');
+      sidebar.style.transform = 'translateX(0)';
+      if (overlay) { overlay.style.display = 'block'; overlay.classList.add('active'); }
+      document.body.style.overflow = 'hidden';
+    }
+  });
+
+  if (overlay) {
+    overlay.addEventListener('click', function() {
+      sidebar.classList.remove('mobile-open');
+      sidebar.style.transform = 'translateX(-100%)';
+      overlay.classList.remove('active');
+      overlay.style.display = 'none';
+      document.body.style.overflow = '';
+    });
+  }
+});
+</script>
 {% block admin_scripts %}{% endblock %}
 {% endblock %}

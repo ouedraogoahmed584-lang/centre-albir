@@ -1932,3 +1932,10 @@ html, body { overflow-x: hidden !important; max-width: 100% !important; }
   margin-bottom: 1.25rem;
   flex-wrap: wrap;
 }
+/* Fix hamburger : cibler par ID admin-hamburger */
+@media (min-width: 1024px) {
+  #admin-hamburger { display: none !important; }
+}
+@media (max-width: 1023px) {
+  #admin-hamburger { display: flex !important; }
+}
