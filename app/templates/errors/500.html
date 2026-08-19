@@ -1,15 +1,32 @@
 {% extends "base.html" %}
-{% block title %}Erreur serveur — Centre Al-Bir{% endblock %}
+{% block title %}Erreur — Centre Al-Bir{% endblock %}
 {% block content %}
-<div class="min-h-screen flex items-center justify-center bg-ivory pt-20 text-center px-4">
+<div style="min-height:100vh;display:flex;align-items:center;
+            justify-content:center;background:var(--bg-body);
+            padding:2rem;text-align:center;">
   <div>
-    <p class="text-8xl font-bold text-primary-900/10 font-serif mb-4">500</p>
-    <h1 class="font-serif text-3xl font-bold text-primary-900 mb-4">Erreur serveur</h1>
-    <p class="text-gray-500 mb-8">Une erreur technique est survenue. Veuillez réessayer.</p>
-    <a href="{{ url_for('public.accueil') }}"
-       class="inline-flex items-center gap-2 px-8 py-4 bg-primary-900 text-white font-bold rounded-2xl hover:bg-primary-800 transition-all">
-      ← Retour à l'accueil
-    </a>
+    <p style="font-size:4rem;margin-bottom:1rem;">⚠️</p>
+    <h1 style="font-family:var(--font-serif);font-size:1.5rem;
+               font-weight:700;color:var(--text-heading);margin-bottom:0.75rem;">
+      Erreur temporaire
+    </h1>
+    <p style="color:var(--text-muted);margin-bottom:1.5rem;max-width:400px;margin-left:auto;margin-right:auto;">
+      Une erreur s'est produite. Réessayez dans quelques secondes.
+    </p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+      <a href="/"
+         style="padding:0.75rem 1.5rem;background:var(--gradient-button);
+                color:#fff;border-radius:12px;text-decoration:none;
+                font-weight:700;">
+        ← Accueil
+      </a>
+      <a href="mailto:centrealbir96@gmail.com"
+         style="padding:0.75rem 1.5rem;border:2px solid var(--border-color);
+                color:var(--text-primary);border-radius:12px;text-decoration:none;
+                font-weight:600;">
+        Contacter le support
+      </a>
+    </div>
   </div>
 </div>
 {% endblock %}
