@@ -2062,3 +2062,13 @@ html, body { overflow-x: hidden !important; max-width: 100% !important; }
     max-width: 260px !important;
   }
 }
+/* FIX BANNIÈRE + NAVBAR — bannière visible au-dessus */
+#enroll-banner {
+  position: sticky;
+  top: 0;
+  z-index: 1001 !important;
+  width: 100%;
+}
+#navbar {
+  top: 0 !important;
+}
