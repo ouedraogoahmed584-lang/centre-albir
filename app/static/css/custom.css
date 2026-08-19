@@ -2329,3 +2329,45 @@ img[style*="rounded"] {
   from { transform: scale(0.85); opacity: 0; }
   to   { transform: scale(1);    opacity: 1; }
 }
+
+/* ============================================================
+   PERFORMANCE — Lazy loading + optimisations
+   ============================================================ */
+
+/* Préchargement navbar critique */
+#navbar { content-visibility: auto; }
+
+/* Lazy loading natif images */
+img:not([loading]) { loading: lazy; }
+
+/* Réduire repaints */
+.float-btn,
+.card-premium,
+.gallery-item {
+  will-change: transform;
+  contain: layout style;
+}
+
+/* Optimiser animations */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Skeleton loading */
+.loading-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-card) 25%,
+    var(--bg-section-alt) 50%,
+    var(--bg-card) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite;
+}
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

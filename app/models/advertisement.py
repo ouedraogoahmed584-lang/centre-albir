@@ -1,4 +1,4 @@
-from app import db
+﻿from app import db
 from datetime import datetime, timezone
 
 
@@ -8,6 +8,9 @@ class Advertisement(db.Model):
     Affichées sur le site public selon leur position et dates.
     """
     __tablename__ = 'advertisements'
+    __table_args__ = (
+        db.Index('ix_ads_active_pos', 'is_active', 'position'),
+    )
 
     id         = db.Column(db.Integer,     primary_key=True)
     title      = db.Column(db.String(200), nullable=False)

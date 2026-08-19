@@ -27,6 +27,9 @@ def create_app(config_name=None):
             config_name = 'production'
 
     app = Flask(__name__)
+
+    # Cache navigateur pour fichiers statiques
+    app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 31536000  # 1 an
     app.config.from_object(config[config_name])
 
     # ── Initialisation des extensions ──────────────────────

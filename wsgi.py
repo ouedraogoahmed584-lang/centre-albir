@@ -1,4 +1,4 @@
-import os
+﻿import os
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -86,3 +86,33 @@ with application.app_context():
 
 if __name__ == '__main__':
     application.run()
+
+# KEEP-ALIVE : Éviter la dormance du plan gratuit Render
+import threading
+import urllib.request
+import os
+
+def keep_alive():
+    """Ping le site toutes les 14 minutes pour éviter la dormance"""
+    import time
+    url = os.environ.get('RENDER_EXTERNAL_URL', '')
+    if not url:
+        return
+    while True:
+        time.sleep(840)  # 14 minutes
+        try:
+            urllib.request.urlopen(url + '/health', timeout=10)
+            print("[KEEP-ALIVE] Ping OK")
+        except Exception:
+            pass
+
+# Route santé
+@application.route('/health')
+def health():
+    from flask import jsonify
+    return jsonify({'status': 'ok', 'app': 'Centre Al-Bir'})
+
+# Lancer keep-alive en arrière-plan
+if os.environ.get('FLASK_ENV') == 'production':
+    t = threading.Thread(target=keep_alive, daemon=True)
+    t.start()
