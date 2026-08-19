@@ -1,4 +1,4 @@
-{#
+﻿{#
   admin_base.html — Layout Admin Premium Centre Al-Bir
   Sidebar responsive avec :
   - Fermeture par overlay clic ✅
@@ -216,12 +216,7 @@
 
     <!-- TOPBAR -->
     <div id="admin-topbar"
-         style="position:sticky;top:68px;z-index:300;
-                background:var(--bg-card);
-                border-bottom:1.5px solid var(--border-color);
-                padding:0.75rem 1rem;
-                display:flex;align-items:center;
-                gap:0.75rem;min-height:58px;">
+         style="background:var(--bg-card);border-bottom:1.5px solid var(--border-color);padding:0.75rem 1rem;display:flex;align-items:center;gap:0.75rem;min-height:56px;position:sticky;top:0;z-index:300;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);">
 
       <!-- Bouton hamburger -->
       <button onclick="openAdminSidebar()"
@@ -278,7 +273,7 @@
     </div>
 
     <!-- Zone de contenu -->
-    <div style="padding:1rem;max-width:100%;overflow-x:hidden;">
+    <div class="admin-content-area">
       {% block admin_content %}{% endblock %}
     </div>
   </div>
