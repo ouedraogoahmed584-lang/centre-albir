@@ -918,42 +918,19 @@ document.addEventListener('click', function(e) {
   </div>
 </div>
 
-<!-- Bouton Scroll Top -->
-<button id="fb-scroll"
-        class="fb-btn"
-        onclick="window.scrollTo({top:0,behavior:'smooth'})"
-        aria-label="Retour en haut"
-        style="position:fixed;right:1.25rem;bottom:7rem;
-               width:44px;height:44px;
-               background:rgba(4,59,44,0.90);
-               border:2px solid rgba(255,255,255,0.22);
-               border-radius:50%;display:flex;
-               align-items:center;justify-content:center;
-               cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.25);
-               opacity:0;visibility:hidden;
-               transition:opacity 0.3s ease,visibility 0.3s ease,transform 0.3s ease;
-               transform:scale(0.8);z-index:999;">
-  <svg width="20" height="20" fill="none" stroke="white"
-       stroke-width="2.5" stroke-linecap="round"
-       stroke-linejoin="round" viewBox="0 0 24 24">
-    <path d="M18 15l-6-6-6 6"/>
-  </svg>
-</button>
-<style>
-#fb-scroll.visible {
-  opacity:1 !important;
-  visibility:visible !important;
-  transform:scale(1) !important;
-}
-</style>
 
 
 
-<!-- Script thème + scroll — version corrigée sans cloneNode -->
+
+
+
+
+<!-- Script bouton thème + scroll — cible les vrais boutons -->
 <script>
 (function() {
   function init() {
-    // ── Bouton thème navbar ──────────────────────────
+
+    // ── Bouton 🎨 navbar → ouvre panneau thèmes ──────
     var navBtn = document.getElementById('navbar-theme-btn');
     if (navBtn) {
       navBtn.addEventListener('click', function(e) {
@@ -963,33 +940,28 @@ document.addEventListener('click', function(e) {
       });
     }
 
-    // ── Fermer panel si clic extérieur ───────────────
+    // ── Fermer panneau thèmes si clic extérieur ───────
     document.addEventListener('click', function(e) {
       var panel = document.getElementById('theme-switcher-panel');
       var btn   = document.getElementById('navbar-theme-btn');
-      if (!panel) return;
-      if (panel.classList.contains('open') &&
-          !panel.contains(e.target) &&
-          (!btn || !btn.contains(e.target))) {
+      if (!panel || !panel.classList.contains('open')) return;
+      if (!panel.contains(e.target) && (!btn || !btn.contains(e.target))) {
         panel.classList.remove('open');
       }
     });
 
-    // ── Bouton scroll top (fb-scroll) ────────────────
-    var scrollBtn = document.getElementById('fb-scroll');
+    // ── Bouton scroll top → btn-scroll-top (le vrai) ─
+    var scrollBtn = document.getElementById('btn-scroll-top');
     if (scrollBtn) {
       window.addEventListener('scroll', function() {
         if (window.scrollY > 400) {
-          scrollBtn.style.opacity    = '1';
-          scrollBtn.style.visibility = 'visible';
-          scrollBtn.style.transform  = 'scale(1)';
+          scrollBtn.classList.add('visible');
         } else {
-          scrollBtn.style.opacity    = '0';
-          scrollBtn.style.visibility = 'hidden';
-          scrollBtn.style.transform  = 'scale(0.8)';
+          scrollBtn.classList.remove('visible');
         }
       }, { passive: true });
     }
+
   }
 
   if (document.readyState === 'loading') {
