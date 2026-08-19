@@ -926,5 +926,84 @@ document.addEventListener('click', function(e) {
     </div>
   </div>
 </div>
+
+<!-- Bouton Scroll Top -->
+<button id="fb-scroll"
+        class="fb-btn"
+        onclick="window.scrollTo({top:0,behavior:'smooth'})"
+        aria-label="Retour en haut"
+        style="position:fixed;right:1.25rem;bottom:7rem;
+               width:44px;height:44px;
+               background:rgba(4,59,44,0.90);
+               border:2px solid rgba(255,255,255,0.22);
+               border-radius:50%;display:flex;
+               align-items:center;justify-content:center;
+               cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.25);
+               opacity:0;visibility:hidden;
+               transition:opacity 0.3s ease,visibility 0.3s ease,transform 0.3s ease;
+               transform:scale(0.8);z-index:999;">
+  <svg width="20" height="20" fill="none" stroke="white"
+       stroke-width="2.5" stroke-linecap="round"
+       stroke-linejoin="round" viewBox="0 0 24 24">
+    <path d="M18 15l-6-6-6 6"/>
+  </svg>
+</button>
+<style>
+#fb-scroll.visible {
+  opacity:1 !important;
+  visibility:visible !important;
+  transform:scale(1) !important;
+}
+</style>
+
+<!-- Fix bouton thème navbar — liaison directe -->
+<script id="bindThemeBtn2026">
+(function() {
+  function bind() {
+    // Bouton navbar thème
+    var navBtn = document.getElementById('navbar-theme-btn');
+    var panel  = document.getElementById('theme-switcher-panel');
+
+    if (navBtn && panel) {
+      // Supprimer ancien listener et recréer
+      var newBtn = navBtn.cloneNode(true);
+      navBtn.parentNode.replaceChild(newBtn, navBtn);
+      newBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        panel.classList.toggle('open');
+      });
+    }
+
+    // Fermer panel si clic extérieur
+    document.addEventListener('click', function(e) {
+      var p = document.getElementById('theme-switcher-panel');
+      var b = document.getElementById('navbar-theme-btn');
+      if (p && p.classList.contains('open') &&
+          !p.contains(e.target) && e.target !== b) {
+        p.classList.remove('open');
+      }
+    });
+
+    // Scroll top button visibility
+    var scrollBtn = document.getElementById('fb-scroll');
+    if (scrollBtn) {
+      window.addEventListener('scroll', function() {
+        if (window.scrollY > 400) {
+          scrollBtn.classList.add('visible');
+        } else {
+          scrollBtn.classList.remove('visible');
+        }
+      }, { passive: true });
+    }
+  }
+
+  // Lancer après chargement DOM
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bind);
+  } else {
+    bind();
+  }
+})();
+</script>
 </body>
 </html>
