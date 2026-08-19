@@ -2072,3 +2072,195 @@ html, body { overflow-x: hidden !important; max-width: 100% !important; }
 #navbar {
   top: 0 !important;
 }
+
+/* ============================================================
+   SYSTÈME IMAGES INTELLIGENT — Centre Al-Bir
+   Appliqué globalement — zéro modification de templates
+   ============================================================ */
+
+/* Toutes les images : pas de débordement */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ── PUBLICITÉS ─────────────────────────────────────── */
+/* Image publicitaire → remplir sans déformer */
+[class*="pub"] img,
+.ad-image img,
+#float-espace-menu img {
+  width: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Publicité dans base.html (banner) */
+[style*="ads/"] img,
+.admin-pub img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* ── GALERIE ─────────────────────────────────────────── */
+/* Toutes les images de galerie : carré parfait */
+.gallery-item img,
+.gallery-grid img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+  transition: transform 0.5s ease;
+}
+
+/* ── ARTICLES / ACTUALITÉS ───────────────────────────── */
+/* Images d'articles : paysage cadré */
+.article-image img,
+[class*="article"] img,
+[class*="actualite"] img {
+  width: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+/* ── LOGO ────────────────────────────────────────────── */
+/* Logo : contenu complet visible */
+img[alt*="Logo"],
+img[alt*="logo"],
+.logo-img {
+  object-fit: contain !important;
+  object-position: center;
+}
+
+/* ── PHOTOS PROFIL / AVATARS ─────────────────────────── */
+/* Photos rondes : couverture centrée */
+img.rounded-full,
+img[style*="border-radius:50%"],
+img[style*="border-radius: 50%"] {
+  object-fit: cover !important;
+  object-position: center top !important;
+}
+
+/* ── IMAGES ADMIN ────────────────────────────────────── */
+/* Aperçus admin : contenu visible */
+.admin-card img,
+.admin-preview img {
+  object-fit: contain;
+  object-position: center;
+}
+
+/* ── RÈGLES PAR CONTEXTE PARENT ──────────────────────── */
+/* Si conteneur a height fixe → cover automatique */
+[style*="height:"] > img,
+[style*="height :"] > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Si conteneur carré → cover centré */
+[style*="aspect-ratio: 1"],
+[style*="aspect-ratio:1"] {
+  overflow: hidden;
+}
+[style*="aspect-ratio: 1"] > img,
+[style*="aspect-ratio:1"] > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* ── PUBLICITÉS DANS BASE.HTML ───────────────────────── */
+/* Images dans les zones de pub */
+#banner-top img,
+#banner-bottom img,
+.pub-zone img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+}
+
+/* Correction images ads dans base.html */
+img[alt][src*="/ads/"] {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+/* Correction images galerie dans base.html */
+img[src*="/gallery/"] {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+/* Correction images uploads */
+img[src*="/uploads/"] {
+  width: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+/* ── IMAGES DANS LIGHTBOX ────────────────────────────── */
+/* Lightbox galerie : contenu complet visible */
+#lightbox-img {
+  max-width: 100% !important;
+  max-height: 75vh !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+/* ── IMAGES ARTICLES DÉTAIL ──────────────────────────── */
+img[src*="article"],
+img[alt*="article"] {
+  object-fit: cover;
+  object-position: center top;
+}
+
+/* ── RESPONSIVE IMAGES ───────────────────────────────── */
+@media (max-width: 640px) {
+  /* Sur mobile : images moins hautes */
+  .gallery-item {
+    aspect-ratio: 1 / 1;
+  }
+  [style*="/ads/"] img {
+    height: auto !important;
+    min-height: 100px;
+    max-height: 200px;
+  }
+}
+
+/* ── PRÉVISUALISATION ADMIN ──────────────────────────── */
+/* Images uploadées dans les formulaires admin */
+#logo-preview-img,
+#preview-src,
+#article-img-preview img {
+  object-fit: contain !important;
+  object-position: center !important;
+  background: var(--bg-section-alt, #f5f5f5);
+}
+
+/* ── LAZY LOADING PLACEHOLDER ────────────────────────── */
+img[loading="lazy"] {
+  background: var(--bg-section-alt, #f0f0f0);
+  min-height: 20px;
+}
+
+/* ── IMAGES ENSEIGNANTS / ÉLÈVES ─────────────────────── */
+img.rounded-xl,
+img[style*="rounded"] {
+  object-fit: cover;
+  object-position: center top;
+}
